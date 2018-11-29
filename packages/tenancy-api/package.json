@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "private": false,
   "name": "@upvest/tenancy-api",
   "version": "0.0.2",
   "description": "An axios-based client for the Upvest Tenancy API",

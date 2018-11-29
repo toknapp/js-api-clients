@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "private": false,
   "name": "@upvest/clientele-api",
   "version": "0.0.2",
   "description": "An axios-based, browser-runnable, client for the Upvest Clientele API",

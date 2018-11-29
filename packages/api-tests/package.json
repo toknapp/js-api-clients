@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "private": false,
   "name": "@upvest/api-tests",
   "version": "0.0.2",
   "description": "Combined tests for the Upvest Tenancy API and the Upvest Clientele API",
