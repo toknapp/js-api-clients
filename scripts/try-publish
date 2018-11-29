@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+# pwd
+package=$(jq -r .name package.json)
+version=$(jq -r .version package.json)
+published=$(yarn info $package version) || published="N/A"
+if [[ "$version" = "$published" ]]; then
+  echo "⚠️   $package@$version is already published!"
+else
+  echo "📦  Publishing: $package@$version (published: $published)"
+  yarn publish --non-interactive --new-version $version
+fi

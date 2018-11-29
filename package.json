@@ -10,6 +10,8 @@
     "packages/*"
   ],
   "scripts": {
+    "bump": "lerna publish --exact --skip-npm",
+    "release": "yarn bump && git push --follow-tags && scripts/release",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
