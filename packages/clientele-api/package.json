@@ -1,0 +1,37 @@
+{
+  "private": true,
+  "name": "@upvest/clientele-api",
+  "version": "0.0.1",
+  "description": "An axios-based, browser-runnable, client for the Upvest Clientele API",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toknapp/js-api-clients.git"
+  },
+  "keywords": [
+    "JS",
+    "js",
+    "Javascript",
+    "JavaScript",
+    "Upvest",
+    "API",
+    "client",
+    "browser",
+    "Node.js",
+    "Node",
+    "node"
+  ],
+  "author": "Raphael Huefner",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/toknapp/js-api-clients/issues"
+  },
+  "homepage": "https://github.com/toknapp/js-api-clients#readme",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "axios-oauth-client": "^1.1.1",
+    "axios-token-interceptor": "^0.1.0"
+  }
+}
