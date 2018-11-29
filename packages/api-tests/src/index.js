@@ -14,7 +14,7 @@ const main = async function (t) {
   const clientele = new UpvestClienteleAPI(
     baseURL,
     oauth2ClientId,
-    '',
+    '', // Do not expose OAuth2 client secret in "public clients", i.e. browsers.
     username,
     password
   );
