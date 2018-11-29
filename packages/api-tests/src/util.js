@@ -1,4 +1,4 @@
-
+// copied from ../tests/util.js
 
 function setDifference(setA, setB) {
   const _difference = new Set(setA);

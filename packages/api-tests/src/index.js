@@ -8,20 +8,13 @@ const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 
 const { tErrorFail } = require('./util.js');
 
-const test_config = require('../.test_config.json');
-const test_tenant = require('../.test_tenant.json');
-
-
 const main = async function (t) {
-  const {username, password} = await fetch('/test-user-credentials').then(res => res.json());
-
-  // console.log(username);
-  // console.log(password);
+  const {baseURL, oauth2ClientId, username, password} = await fetch('/test-credentials').then(res => res.json());
 
   const clientele = new UpvestClienteleAPI(
-    test_config.baseURL,
-    test_tenant.first_oauth2_client.client_id,
-    test_tenant.first_oauth2_client.client_secret,
+    baseURL,
+    oauth2ClientId,
+    '',
     username,
     password
   );

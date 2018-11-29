@@ -6,8 +6,9 @@ const { APIKeyDebugger } = require('./authentication/api-key/debugger.js');
 
 class UpvestTenancyAPI {
   constructor(baseURL, key, secret, passphrase, debug=false) {
+    const tenancyBaseURL = baseURL + 'tenancy/';
     this.client = axios.create({
-      baseURL: baseURL,
+      baseURL: tenancyBaseURL,
       timeout: 30000,
       maxRedirects: 0, // Upvest API should not redirect anywhere. We use versioned endpoints instead.
     });
@@ -31,7 +32,7 @@ class UpvestTenancyAPI {
 
   async echo(what) {
     const data = {echo: what};
-    const response = await this.client.post('tenancy/echo-signed', data);
+    const response = await this.client.post('echo-signed', data);
     return response.data.echo;
   }
 
@@ -51,13 +52,13 @@ class UsersEndpoint {
 
   async create(username, password, clientIp, userAgent) {
     const data = {username, password, client_ip:clientIp, user_agent:userAgent};
-    const response = await this.client.post('tenancy/users/', data);
+    const response = await this.client.post('users/', data);
     return response.data;
   }
 
   async listByPage(pageNumber=1) {
     const params = {page: pageNumber};
-    const response = await this.client.get('tenancy/users/', {params});
+    const response = await this.client.get('users/', {params});
     return response.data.results;
   }
 
@@ -68,7 +69,7 @@ class UsersEndpoint {
       const params = {page: pageNumber};
       let response;
       try {
-        response = await this.client.get('tenancy/users/', {params});
+        response = await this.client.get('users/', {params});
       }
       catch (error) {
         console.log(`Caught error while trying to get user list page # ${pageNumber}:`);
@@ -101,18 +102,18 @@ class UsersEndpoint {
 
   async retrieve(username) {
     const params = {};
-    const response = await this.client.get(`tenancy/users/${username}/`, params);
+    const response = await this.client.get(`users/${username}/`, params);
     return response.data;
   }
 
   async updatePassword(username, oldPassword, newPassword) {
     const data = {old_password:oldPassword, new_password:newPassword};
-    const response = await this.client.patch(`tenancy/users/${username}/`, data);
+    const response = await this.client.patch(`users/${username}/`, data);
     return response.data;
   }
 
   async delete(username) {
-    const response = await this.client.delete(`tenancy/users/${username}/`);
+    const response = await this.client.delete(`users/${username}/`);
     return response.status == 204;
   }
 }

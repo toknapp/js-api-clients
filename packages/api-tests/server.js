@@ -30,13 +30,18 @@ const main = async function () {
     return;
   }
 
-  const testUserCredentials = {username, password};
+  const testUserCredentials = {
+    username,
+    password,
+    oauth2ClientId:test_tenant.first_oauth2_client.client_id,
+    baseURL:test_config.baseURL,
+  };
 
   const app = express();
 
   app.use(express.static(__dirname + '/browser/'));
 
-  app.get('/test-user-credentials', function (req, res) {
+  app.get('/test-credentials', function (req, res) {
     res.send(JSON.stringify(testUserCredentials));
   });
 

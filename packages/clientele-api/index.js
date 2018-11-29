@@ -5,7 +5,8 @@ const tokenProvider = require('axios-token-interceptor');
 
 class UpvestClienteleAPI {
   constructor(baseURL, client_id, client_secret, username, password, scope=['read', 'write', 'echo']) {
-    const OAuth2TokenURL = baseURL + 'clientele/oauth/token/';
+    const clienteleBaseURL = baseURL + 'clientele/';
+    const OAuth2TokenURL = clienteleBaseURL + 'oauth/token/';
 
     this.getOwnerCredentials = oauth.client(axios.create(), {
       url: OAuth2TokenURL,
@@ -18,7 +19,7 @@ class UpvestClienteleAPI {
     });
 
     this.client = axios.create({
-      baseURL: baseURL,
+      baseURL: clienteleBaseURL,
       timeout: 30000,
       maxRedirects: 0, // Upvest API should not redirect anywhere. We use versioned endpoints instead.
     });
@@ -33,7 +34,7 @@ class UpvestClienteleAPI {
 
   async echo(what) {
     const data = {echo: what};
-    const response = await this.client.post('clientele/echo-oauth2', data);
+    const response = await this.client.post('echo-oauth2', data);
     return response.data.echo;
   }
 }
