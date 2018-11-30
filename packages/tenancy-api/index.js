@@ -102,18 +102,18 @@ class UsersEndpoint {
 
   async retrieve(username) {
     const params = {};
-    const response = await this.client.get(`users/${username}/`, params);
+    const response = await this.client.get(`users/${username}`, params);
     return response.data;
   }
 
   async updatePassword(username, oldPassword, newPassword) {
     const data = {old_password:oldPassword, new_password:newPassword};
-    const response = await this.client.patch(`users/${username}/`, data);
+    const response = await this.client.patch(`users/${username}`, data);
     return response.data;
   }
 
   async delete(username) {
-    const response = await this.client.delete(`users/${username}/`);
+    const response = await this.client.delete(`users/${username}`);
     return response.status == 204;
   }
 }

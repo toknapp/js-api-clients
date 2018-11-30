@@ -6,7 +6,7 @@ const tokenProvider = require('axios-token-interceptor');
 class UpvestClienteleAPI {
   constructor(baseURL, client_id, client_secret, username, password, scope=['read', 'write', 'echo']) {
     const clienteleBaseURL = baseURL + 'clientele/';
-    const OAuth2TokenURL = clienteleBaseURL + 'oauth/token/';
+    const OAuth2TokenURL = clienteleBaseURL + 'oauth2/token';
 
     this.getOwnerCredentials = oauth.client(axios.create(), {
       url: OAuth2TokenURL,
