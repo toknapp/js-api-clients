@@ -1,4 +1,4 @@
 node_modules
 .test*.json
 package-lock.json
-.log
+*.log
