@@ -1,0 +1,18 @@
+{
+  "baseURL": "http://127.0.0.1:8000/1.0/",
+  "tenant": {
+    "name": "YOUR_TENANT_NAME",
+    "id": 1337,
+    "private_key_base64_last_chance_to_see": "SpZaStjZwgpa0QOOXEOIlCZPLhYYhLX+Y+wWeg2P+qc=",
+    "public_key_base64": "biK+4ISWPYLpwsDaF4wl6UXKgxy3I6Xigc82JJf11go="
+  },
+  "first_apikey": {
+    "key": "tPKWL9B_yTgfSToOFJmLyg",
+    "secret": "9O7tLb1ub6qLHZQ00ButDOcfvw9g7Gn8GzFB4WmsUrA",
+    "passphrase_last_chance_to_see": "dlKsARh6U3chEQK0WBTU-u-qqn-l4IknmXH1jRGW_fQ"
+  },
+  "first_oauth2_client": {
+    "client_id": "j3sH4R1htxgTkdWPxRgyTQt2LSiovrKuziHAc8aJ",
+    "client_secret": "6hYU72rsW3VTl94hBqokzYZSuh5jaKLwjTYLouEhl7ndurkqn78lFYzeteU6kCHLzfZblT5WTf4p7R4VS9lR7vHne0Xm09DBolCG693Cp5qlwL7CHnUDAovjYPWxKP3z"
+  }
+}
