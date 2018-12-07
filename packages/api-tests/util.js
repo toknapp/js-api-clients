@@ -1,3 +1,5 @@
+const { promisify } = require('util');
+const { createInterface } = require('readline');
 
 function setDifference(setA, setB) {
   const _difference = new Set(setA);
@@ -41,6 +43,20 @@ const tErrorFail = (t, error, message) => {
   return;
 }
 
+const readlineQuestionPromise = promisify((prompt, callback) => {
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  rl.question(
+    prompt,
+    answer => {
+      rl.close();
+      callback(undefined, answer);
+    }
+  );
+});
+
 module.exports = {
-  setDifference, setEqual, inspect, inspectError, tErrorFail
+  setDifference, setEqual, inspect, inspectError, tErrorFail, readlineQuestionPromise
 };
