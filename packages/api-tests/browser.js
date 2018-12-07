@@ -1,4 +1,4 @@
-// copied from ../tests/test-clientele-api.js
+// copied from ./tests/test-clientele-api.js
 
 // const test = require('tape');
 
@@ -9,7 +9,7 @@ const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 const { tErrorFail } = require('./util.js');
 
 const main = async function (t) {
-  const {baseURL, oauth2ClientId, username, password} = await fetch('/test-credentials').then(res => res.json());
+  const { baseURL, oauth2ClientId, username, password } = await fetch('/test-credentials').then(res => res.json());
 
   const clientele = new UpvestClienteleAPI(
     baseURL,

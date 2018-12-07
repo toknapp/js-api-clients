@@ -4,6 +4,7 @@ const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 
 const test_config = require('./.test_config.json');
 const test_tenant = require('./.test_tenant.json');
+const { inspect, inspectError } = require('./util.js');
 
 const express = require('express');
 const opn = require('opn');
@@ -27,6 +28,7 @@ const main = async function () {
   }
   catch (error) {
     console.log('Error creating user.');
+    inspectError(error);
     return;
   }
 
@@ -36,6 +38,8 @@ const main = async function () {
     oauth2ClientId:test_tenant.first_oauth2_client.client_id,
     baseURL:test_config.baseURL,
   };
+
+  inspect(testUserCredentials);
 
   const app = express();
 

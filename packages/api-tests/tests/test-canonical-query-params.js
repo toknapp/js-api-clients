@@ -8,7 +8,7 @@ const {
 
 const { toBuf } = require('@upvest/tenancy-api/authentication/api-key/util.js');
 
-const { setDifference, setEqual } = require('./util.js');
+const { setDifference, setEqual } = require('../util.js');
 
 test('Testing getQueryParamsIterator() with plain Object', t => {
   const queryParams = {
