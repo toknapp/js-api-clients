@@ -9,6 +9,9 @@ Here is an example how to use it in Node.js:
 ```javascript
 const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 
+const exampleUsername = 'Example User';
+const examplePassword = 'ex@mp1e p@55w0rd';
+
 const config = {
   "baseURL": "https://api.eu.upvest.co/1.0/",
   "apikey": {
@@ -26,8 +29,8 @@ const clientele = new UpvestClienteleAPI(
   config.baseURL,
   config.oauth2.client_id,
   config.oauth2.client_secret,
-  config.username,
-  config.password
+  exampleUsername,
+  examplePassword
 );
 
 async function example() {

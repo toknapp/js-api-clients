@@ -32,6 +32,7 @@
   "homepage": "https://github.com/toknapp/js-api-clients#readme",
   "devDependencies": {
     "clean-webpack-plugin": "^1.0.0",
+    "commander": "^2.19.0",
     "crypto-random-string": "^1.0.0",
     "express": "^4.16.4",
     "fast-xml-parser": "^3.12.9",

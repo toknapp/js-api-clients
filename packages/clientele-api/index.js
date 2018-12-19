@@ -4,7 +4,7 @@ const oauth = require('axios-oauth-client');
 const tokenProvider = require('axios-token-interceptor');
 
 class UpvestClienteleAPI {
-  constructor(baseURL, client_id, client_secret, username, password, scope=['read', 'write', 'echo']) {
+  constructor(baseURL, client_id, client_secret, username, password, scope=['read', 'write', 'echo'], timeout=120000) {
     const OAuth2TokenURL = baseURL + 'clientele/oauth2/token';
 
     this.getOwnerCredentials = oauth.client(axios.create(), {
@@ -19,7 +19,7 @@ class UpvestClienteleAPI {
 
     this.client = axios.create({
       baseURL: baseURL,
-      timeout: 30000,
+      timeout: timeout || 120000,
       maxRedirects: 0, // Upvest API should not redirect anywhere. We use versioned endpoints instead.
     });
 

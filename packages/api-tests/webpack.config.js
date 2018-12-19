@@ -12,7 +12,7 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(['browser'], {exclude:['.gitignore']}),
     new HtmlWebpackPlugin({
-      title: 'Test Upvest Clientele API browser-side',
+      title: 'Test Upvest Clientele API client browser-side',
     }),
   ],
 };
