@@ -4,7 +4,7 @@ const oauth = require('axios-oauth-client');
 const tokenProvider = require('axios-token-interceptor');
 
 class UpvestClienteleAPI {
-  constructor(baseURL, client_id, client_secret, username, password, scope=['read', 'write', 'echo'], timeout=120000) {
+  constructor(baseURL, client_id, client_secret, username, password, scope=['read', 'write', 'echo', 'wallet', 'transaction'], timeout=120000) {
     const OAuth2TokenURL = baseURL + 'clientele/oauth2/token';
 
     this.getOwnerCredentials = oauth.client(axios.create(), {
@@ -42,6 +42,13 @@ class UpvestClienteleAPI {
       this.walletsEndpoint = new WalletsEndpoint(this.client);
     }
     return this.walletsEndpoint;
+  }
+
+  get transactions() {
+    if (! this.transactionsEndpoint) {
+      this.transactionsEndpoint = new TransactionsEndpoint(this.client);
+    }
+    return this.transactionsEndpoint;
   }
 }
 
@@ -94,9 +101,30 @@ class WalletsEndpoint {
     } while (cursor != null);
   }
 
-  async retrieve(uuid) {
+  async retrieve(id) {
     const params = {};
-    const response = await this.client.get(`kms/wallets/${uuid}`, params);
+    const response = await this.client.get(`kms/wallets/${id}`, params);
+    return response.data;
+  }
+}
+
+
+// TODO Refactor this copied code (see packages/tenancy-api/index.js )
+class TransactionsEndpoint {
+  constructor(client) {
+    this.client = client;
+  }
+
+  async create(walletId, password, recipient, symbol, quantity, fee) {
+    const data = {
+      wallet_id:walletId,
+      password,
+      recipient,
+      symbol,
+      quantity:String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
+      fee:String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
+    };
+    const response = await this.client.post('tx/', data);
     return response.data;
   }
 }

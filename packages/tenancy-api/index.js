@@ -49,6 +49,13 @@ class UpvestTenancyAPI {
     }
     return this.walletsEndpoint;
   }
+
+  get transactions() {
+    if (! this.transactionsEndpoint) {
+      this.transactionsEndpoint = new TransactionsEndpoint(this.client);
+    }
+    return this.transactionsEndpoint;
+  }
 }
 
 
@@ -175,6 +182,27 @@ class WalletsEndpoint {
   async retrieve(uuid) {
     const params = {};
     const response = await this.client.get(`kms/wallets/${uuid}`, params);
+    return response.data;
+  }
+}
+
+
+// TODO Refactor this copied code (see packages/tenancy-api/index.js )
+class TransactionsEndpoint {
+  constructor(client) {
+    this.client = client;
+  }
+
+  async create(walletId, password, recipient, symbol, quantity, fee) {
+    const data = {
+      wallet_id:walletId,
+      password,
+      recipient,
+      symbol,
+      quantity:String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
+      fee:String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
+    };
+    const response = await this.client.post('tx/', data);
     return response.data;
   }
 }

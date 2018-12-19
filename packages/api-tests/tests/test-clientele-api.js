@@ -1,3 +1,6 @@
+const util = require('util');
+const setTimeoutPromise = util.promisify(setTimeout);
+
 const test = require('tape');
 
 const cryptoRandomString = require('crypto-random-string');
@@ -15,6 +18,14 @@ const tenancy = new UpvestTenancyAPI(
   test_config.first_apikey.secret,
   test_config.first_apikey.passphrase_last_chance_to_see,
   // true
+);
+
+const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
+  test_config.baseURL,
+  test_config.first_oauth2_client.client_id,
+  test_config.first_oauth2_client.client_secret,
+  username,
+  password
 );
 
 test('Testing valid OAuth2 credentials succeed', async function (t) {
@@ -195,6 +206,95 @@ test('Testing wallets.list() and wallets.retrieve()', async function (t) {
 
     const walletStates = new Set(['PENDING', 'ACTIVE']);
     t.ok(walletStates.has(wallet.status), 'wallet.status is one of "PENDING" or "ACTIVE".');
+  }
+
+  t.end();
+});
+
+test.only('Testing transactions.create()', async function (t) {
+  const ERC20_SYMBOL = 'OMG';
+  const username = cryptoRandomString(10);
+  const password = cryptoRandomString(10);
+  let user;
+  try {
+    user = await tenancy.users.create(username, password);
+  }
+  catch (error) {
+    return tErrorFail(t, error, 'Creating the user failed.');
+  }
+
+  t.equal(user.username, username, 'actual and expected username are equal');
+
+  // Poll user's wallets to see when seed generation has finished. Prefer
+  // polling over the API Key callback, because this test script might run in
+  // places which are not able to receive callbacks.
+  const MAX_WAIT = 3 * 60;
+  const waitingForGenSeed = getClienteleAPI(username, password);
+  let isGenSeedFinished;
+  let secondsWaitedForGenSeed = 0;
+  do {
+    isGenSeedFinished = true;
+    for await (const wallet of waitingForGenSeed.wallets.list()) {
+      inspect(secondsWaitedForGenSeed);
+      inspect(wallet);
+      if (wallet.status != 'ACTIVE' || wallet.address === null) {
+        isGenSeedFinished = false;
+        break;
+      }
+    }
+    if (! isGenSeedFinished) {
+      // Sleep for a second, then try again.
+      await setTimeoutPromise(1000);
+    }
+    secondsWaitedForGenSeed++;
+  }
+  while (! isGenSeedFinished && secondsWaitedForGenSeed < MAX_WAIT);
+  t.ok(secondsWaitedForGenSeed < MAX_WAIT, `Waited less than ${MAX_WAIT} seconds for seed generation.`);
+
+  const GRACE_PERIOD = 10;
+  await setTimeoutPromise(GRACE_PERIOD * 1000);
+
+  const clientele = getClienteleAPI(username, password);
+
+  t.comment('Test listing all wallets of one user, and generating a transaction for those wallets which are Ethereum or Erc20 wallets.')
+  for await (const wallet of clientele.wallets.list()) {
+    // Only test Tx creation for ETH.
+    if (! wallet.protocol in ['co.upvest.kinds.Ethereum', 'co.upvest.kinds.Erc20']) {
+      continue;
+    }
+
+    console.log('Inspecting listed wallet:');
+    inspect(wallet);
+
+
+    // TODO transfer ETH and XXX funds from testnet faucet to wallet.address
+
+    let tx;
+    try {
+      tx = await await clientele.transactions.create(
+        wallet.id,
+        password,
+        recipient='0x6720d291a72b8673e774a179434c96d21eb85e71',
+        symbol=ERC20_SYMBOL,
+        quantity='1000000',
+        fee='1000'
+      );
+    }
+    catch (error) {
+      return tErrorFail(t, error, 'Creating the transaction failed.');
+    }
+
+    console.log('Inspecting result of transaction creation:');
+    inspect(tx);
+
+    // { id: '2ca1c534-5c53-4bd7-aabf-b986829ceda3',
+    //   txhash:
+    //    '9c3ce3ba95da3b4030db8959b6a79ff2b6fd997ccc5cb81f7409b0de345400a1',
+    //   sender: null,
+    //   recipient: '0x6720d291a72b8673e774a179434c96d21eb85e71',
+    //   quantity: '1000000',
+    //   fee: '1000' }
+
   }
 
   t.end();

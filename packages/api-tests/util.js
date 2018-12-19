@@ -21,15 +21,26 @@ const inspect = thing => console.dir(thing, {depth:null, colors:true});
 
 const inspectError = error => {
   if (error.response) {
-    inspect(error.response.config.method);
-    inspect(error.response.config.url);
-    inspect(error.response.config.params);
-    inspect(error.response.config.headers);
-    inspect(error.response.config.data);
-    inspect(error.response.status);
-    inspect(error.response.statusText);
-    inspect(error.response.headers);
-    inspect(error.response.data);
+    const isTextResponse = ('string' == typeof error.response.data);
+    const summary = {
+      request: {
+        method: error.response.config.method,
+        url: error.response.config.url,
+        queryParams: error.response.config.params,
+        headers: error.response.config.headers,
+        jsonBody: error.response.config.data,
+      },
+      response: {
+        status: error.response.status,
+        reason: error.response.statusText,
+        headers: error.response.headers,
+        jsonBody: isTextResponse ? '[see printed response text below]' : error.response.data,
+      },
+    }
+    inspect(summary);
+    if (isTextResponse) {
+      console.log(error.response.data);
+    }
   }
   else {
     inspect(error);
