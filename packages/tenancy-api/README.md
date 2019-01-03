@@ -55,3 +55,7 @@ example();
 ```
 
 For more examples, please check out our test-suite at https://www.npmjs.com/package/@upvest/api-tests
+
+# License
+
+This software is released under the [MIT License](https://github.com/toknapp/js-api-clients/tree/master/LICENSE)
