@@ -3,6 +3,9 @@ const axios = require('axios');
 const oauth = require('axios-oauth-client');
 const tokenProvider = require('axios-token-interceptor');
 
+const { WalletsEndpoint, TransactionsEndpoint } = require('@upvest/api-library');
+
+
 class UpvestClienteleAPI {
   constructor(baseURL, client_id, client_secret, username, password, scope=['read', 'write', 'echo', 'wallet', 'transaction'], timeout=120000) {
     const OAuth2TokenURL = baseURL + 'clientele/oauth2/token';
@@ -49,83 +52,6 @@ class UpvestClienteleAPI {
       this.transactionsEndpoint = new TransactionsEndpoint(this.client);
     }
     return this.transactionsEndpoint;
-  }
-}
-
-
-// TODO Refactor this copied code (see packages/tenancy-api/index.js )
-class WalletsEndpoint {
-  constructor(client) {
-    this.client = client;
-  }
-
-  async* list(pageSize) {
-    let cursor = null;
-    do {
-      const params = {};
-      if (cursor) {
-        params['cursor'] = cursor;
-      }
-      if (pageSize) {
-        params['page_size'] = pageSize;
-      }
-      let response;
-      try {
-        response = await this.client.get('kms/wallets/', {params});
-      }
-      catch (error) {
-        console.log('Caught error while trying to get wallet list.');
-        if ('response' in error) {
-          console.dir(error.response.config.url, {depth:null, colors:true});
-          console.dir(error.response.config.headers, {depth:null, colors:true});
-          console.dir(error.response.status, {depth:null, colors:true});
-          console.dir(error.response.data, {depth:null, colors:true});
-        }
-        else {
-          console.log('Caught error without response:');
-          console.dir(error, {depth:null, colors:true});
-        }
-        return;
-      }
-      for (const result of response.data.results) {
-        yield result;
-      }
-      if (response.data.next != null) {
-        let nextUrl = new URL(response.data.next);
-        cursor = nextUrl.searchParams.get('cursor');
-        // TODO Figure out how to use the whole URL in `next` instead of this parsing.
-      }
-      else {
-        cursor = null;
-      }
-    } while (cursor != null);
-  }
-
-  async retrieve(id) {
-    const params = {};
-    const response = await this.client.get(`kms/wallets/${id}`, params);
-    return response.data;
-  }
-}
-
-
-// TODO Refactor this copied code (see packages/tenancy-api/index.js )
-class TransactionsEndpoint {
-  constructor(client) {
-    this.client = client;
-  }
-
-  async create(walletId, password, recipient, symbol, quantity, fee) {
-    const data = {
-      wallet_id:walletId,
-      password,
-      recipient,
-      symbol,
-      quantity:String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
-      fee:String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
-    };
-    const response = await this.client.post('tx/', data);
-    return response.data;
   }
 }
 
