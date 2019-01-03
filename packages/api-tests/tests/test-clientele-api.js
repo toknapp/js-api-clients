@@ -214,7 +214,7 @@ test('Testing wallets.list() and wallets.retrieve()', async function (t) {
   t.end();
 });
 
-test.only('Testing transactions.create()', async function (t) {
+test('Testing transactions.create()', async function (t) {
   const faucetConfig = test_config.faucet.ethereum;
   const username = cryptoRandomString(10);
   const password = cryptoRandomString(10);
