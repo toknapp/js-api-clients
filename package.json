@@ -6,9 +6,6 @@
   "directories": {
     "packages": "./packages"
   },
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
     "bump": "lerna publish --exact --skip-npm",
     "release": "yarn bump && git push --follow-tags && scripts/release",
