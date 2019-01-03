@@ -5,6 +5,8 @@ const test = require('tape');
 
 const cryptoRandomString = require('crypto-random-string');
 
+const { EthereumAndErc20Faucet } = require('../faucet.js');
+
 const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 
@@ -136,7 +138,8 @@ test('Testing OAuth2 echo endpoint', async function (t) {
     return tErrorFail(t, error, 'Either obtaining the OAuth2 token or calling the echo endpoint failed.');
   }
 
-  // console.dir(echo, {depth:null, colors:true});
+  // t.comment('Inspecting echo:');
+  // inspect(echo);
   t.equal(echo, 'Hi there!', 'actual and expected OAuth2 echo are equal');
   t.end();
 });
@@ -165,7 +168,7 @@ test('Testing wallets.list() and wallets.retrieve()', async function (t) {
 
   t.comment('Test listing all wallets of one user, and retrieving each one of them.')
   for await (const wallet of clientele.wallets.list()) {
-    // console.log('Inspecting listed wallet:');
+    // t.comment('Inspecting listed wallet:');
     // inspect(wallet);
     let retrievedWallet;
     try {
@@ -174,7 +177,7 @@ test('Testing wallets.list() and wallets.retrieve()', async function (t) {
     catch (error) {
       return tErrorFail(t, error, 'Retrieving the wallet failed.');
     }
-    // console.log('Inspecting retrieved wallet:');
+    // t.comment('Inspecting retrieved wallet:');
     // inspect(retrievedWallet);
 
     // { id: '3e10efd9-72ce-4247-8bd9-50b9d14e1b27',
@@ -212,7 +215,7 @@ test('Testing wallets.list() and wallets.retrieve()', async function (t) {
 });
 
 test.only('Testing transactions.create()', async function (t) {
-  const ERC20_SYMBOL = 'OMG';
+  const faucetConfig = test_config.faucet.ethereum;
   const username = cryptoRandomString(10);
   const password = cryptoRandomString(10);
   let user;
@@ -225,6 +228,7 @@ test.only('Testing transactions.create()', async function (t) {
 
   t.equal(user.username, username, 'actual and expected username are equal');
 
+  t.comment('Wait for seed generation.')
   // Poll user's wallets to see when seed generation has finished. Prefer
   // polling over the API Key callback, because this test script might run in
   // places which are not able to receive callbacks.
@@ -235,8 +239,8 @@ test.only('Testing transactions.create()', async function (t) {
   do {
     isGenSeedFinished = true;
     for await (const wallet of waitingForGenSeed.wallets.list()) {
-      inspect(secondsWaitedForGenSeed);
-      inspect(wallet);
+      t.comment(`Waited ${secondsWaitedForGenSeed} seconds.`);
+      // inspect(wallet);
       if (wallet.status != 'ACTIVE' || wallet.address === null) {
         isGenSeedFinished = false;
         break;
@@ -259,32 +263,41 @@ test.only('Testing transactions.create()', async function (t) {
   t.comment('Test listing all wallets of one user, and generating a transaction for those wallets which are Ethereum or Erc20 wallets.')
   for await (const wallet of clientele.wallets.list()) {
     // Only test Tx creation for ETH.
-    if (! wallet.protocol in ['co.upvest.kinds.Ethereum', 'co.upvest.kinds.Erc20']) {
+    if (-1 === ['co.upvest.kinds.Ethereum', 'co.upvest.kinds.Erc20'].indexOf(wallet.protocol)) {
       continue;
     }
 
-    console.log('Inspecting listed wallet:');
+    t.comment('Inspecting listed wallet:');
     inspect(wallet);
 
-
-    // TODO transfer ETH and XXX funds from testnet faucet to wallet.address
+    // transfer ETH and ERC20 funds from testnet faucet to wallet.address
+    inspect('User credentials, in case the faucetting and/or test Tx fails:', {username, password});
+    t.comment('Create faucet.')
+    const faucet = new EthereumAndErc20Faucet(faucetConfig);
+    t.comment('Faucet some ETH to new wallet.')
+    const faucetResultsEth = await faucet.faucetEth(wallet.address, faucetConfig.gasPrice * faucetConfig.erc20.gasLimit);
+    inspect('faucetResultsEth ==', faucetResultsEth);
+    t.comment('Faucet some ERC20 tokens to new wallet.')
+    const faucetResultsErc20 = await faucet.faucetErc20(wallet.address, faucetConfig.erc20.amount);
+    inspect('faucetResultsErc20 ==', faucetResultsErc20);
+    faucet.disconnect();
 
     let tx;
     try {
       tx = await await clientele.transactions.create(
         wallet.id,
         password,
-        recipient='0x6720d291a72b8673e774a179434c96d21eb85e71',
-        symbol=ERC20_SYMBOL,
-        quantity='1000000',
-        fee='1000'
+        recipient=faucetConfig.holder.address,
+        symbol=faucetConfig.erc20.symbol,
+        quantity=faucetConfig.erc20.amount,
+        fee=(faucetConfig.gasPrice * faucetConfig.erc20.gasLimit)
       );
     }
     catch (error) {
       return tErrorFail(t, error, 'Creating the transaction failed.');
     }
 
-    console.log('Inspecting result of transaction creation:');
+    t.comment('Inspecting result of transaction creation:');
     inspect(tx);
 
     // { id: '2ca1c534-5c53-4bd7-aabf-b986829ceda3',
@@ -296,6 +309,50 @@ test.only('Testing transactions.create()', async function (t) {
     //   fee: '1000' }
 
   }
+
+  t.end();
+});
+
+test.skip('Debug testing of transactions.create() with specific credentials', async function (t) {
+  const username = 'abcdef0123';
+  const password = '0123abcdef';
+  const seedhash = '0123abcdef0123abcdef01';
+
+  const walletId = '0123abcd-cdef-cdef-cdef-012345abcdef';
+  const walletAddress = '0x0123456789abcdef0123456789abcdef01234567';
+
+  const faucetConfig = test_config.faucet.ethereum;
+
+  const clientele = getClienteleAPI(username, password);
+
+  let wallet;
+  try {
+    wallet = await clientele.wallets.retrieve(walletId);
+  }
+  catch (error) {
+    return tErrorFail(t, error, 'Retrieving the wallet failed.');
+  }
+
+  t.comment('Inspecting retrieved wallet:');
+  inspect(wallet);
+
+  let tx;
+  try {
+    tx = await await clientele.transactions.create(
+      wallet.id,
+      password,
+      recipient=faucetConfig.holder.address,
+      symbol=faucetConfig.erc20.symbol,
+      quantity=faucetConfig.erc20.amount,
+      fee=(faucetConfig.gasPrice * faucetConfig.erc20.gasLimit)
+    );
+  }
+  catch (error) {
+    return tErrorFail(t, error, 'Creating the transaction failed.');
+  }
+
+  t.comment('Inspecting result of transaction creation:');
+  inspect(tx);
 
   t.end();
 });

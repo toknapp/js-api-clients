@@ -17,7 +17,7 @@ function setEqual(setA, setB) {
   );
 }
 
-const inspect = thing => console.dir(thing, {depth:null, colors:true});
+const inspect = (...things) => things.forEach(thing => console.dir(thing, {depth:null, colors:true}));
 
 const inspectError = error => {
   if (error.response) {

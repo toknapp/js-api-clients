@@ -39,6 +39,7 @@
     "html-webpack-plugin": "^3.2.0",
     "opn": "^5.4.0",
     "tape": "^4.9.1",
+    "web3": "^1.0.0-beta.37",
     "webpack": "^4.26.1",
     "webpack-cli": "^3.1.2"
   },

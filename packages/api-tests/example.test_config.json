@@ -14,5 +14,23 @@
   "first_oauth2_client": {
     "client_id": "j3sH4R1htxgTkdWPxRgyTQt2LSiovrKuziHAc8aJ",
     "client_secret": "6hYU72rsW3VTl94hBqokzYZSuh5jaKLwjTYLouEhl7ndurkqn78lFYzeteU6kCHLzfZblT5WTf4p7R4VS9lR7vHne0Xm09DBolCG693Cp5qlwL7CHnUDAovjYPWxKP3z"
+  },
+  "faucet": {
+    "ethereum": {
+      "netName": "ropsten",
+      "infuraProjectId": "0123456789abcdef0123456789abcdef",
+      "holder": {
+        "address": "0x0123456789abcdef0123456789abcdef01234567",
+        "key": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "erc20": {
+        "contract": "0x89abcdef0123456789abcdef0123456789abcdef",
+        "gasLimit": 100000,
+        "amount": 17,
+        "symbol": "COIN"
+      },
+      "confirmationThreshold": 4,
+      "gasPrice": 3.5e9
+    }
   }
 }
