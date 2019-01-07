@@ -215,7 +215,6 @@ test('Testing wallets.list() and wallets.retrieve()', async function (t) {
 });
 
 test('Testing transactions.create()', async function (t) {
-  const faucetConfig = test_config.faucet.ethereum;
   const username = cryptoRandomString(10);
   const password = cryptoRandomString(10);
   let user;
@@ -271,16 +270,25 @@ test('Testing transactions.create()', async function (t) {
     inspect(wallet);
 
     // transfer ETH and ERC20 funds from testnet faucet to wallet.address
-    inspect('User credentials, in case the faucetting and/or test Tx fails:', {username, password});
-    t.comment('Create faucet.')
-    const faucet = new EthereumAndErc20Faucet(faucetConfig);
-    t.comment('Faucet some ETH to new wallet.')
-    const faucetResultsEth = await faucet.faucetEth(wallet.address, faucetConfig.gasPrice * faucetConfig.erc20.gasLimit);
-    inspect('faucetResultsEth ==', faucetResultsEth);
-    t.comment('Faucet some ERC20 tokens to new wallet.')
-    const faucetResultsErc20 = await faucet.faucetErc20(wallet.address, faucetConfig.erc20.amount);
-    inspect('faucetResultsErc20 ==', faucetResultsErc20);
-    faucet.disconnect();
+    let faucetConfig;
+    if (('faucet' in test_config) && ('ethereum' in test_config.faucet)) {
+      faucetConfig = test_config.faucet.ethereum;
+      inspect('User credentials, in case the faucetting and/or test Tx fails:', {username, password});
+      t.comment('Create faucet.')
+      const faucet = new EthereumAndErc20Faucet(faucetConfig);
+      t.comment('Faucet some ETH to new wallet.')
+      const faucetResultsEth = await faucet.faucetEth(wallet.address, faucetConfig.gasPrice * faucetConfig.erc20.gasLimit);
+      inspect('faucetResultsEth ==', faucetResultsEth);
+      t.comment('Faucet some ERC20 tokens to new wallet.')
+      const faucetResultsErc20 = await faucet.faucetErc20(wallet.address, faucetConfig.erc20.amount);
+      inspect('faucetResultsErc20 ==', faucetResultsErc20);
+      faucet.disconnect();
+    }
+    else {
+      // Even without running an actual faucet, we are still using some faucet
+      // config values in the test Tx. Just use the example config for that.
+      faucetConfig = require('../example.test_config.json').faucet.ethereum;
+    }
 
     let tx;
     try {
