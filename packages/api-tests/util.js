@@ -119,7 +119,7 @@ const tWaitForWalletActivation = async (t, api) => {
   while (! isGenSeedFinished && secondsWaitedForGenSeed < MAX_WAIT);
   t.ok(secondsWaitedForGenSeed < MAX_WAIT, `Waited less than ${MAX_WAIT} seconds for seed generation.`);
 
-  const GRACE_PERIOD = 10;
+  const GRACE_PERIOD = Math.min(10, secondsWaitedForGenSeed);
   t.comment(`Waiting for an additional grace period of ${GRACE_PERIOD} seconds.`)
   await setTimeoutPromise(GRACE_PERIOD * 1000);
 };
