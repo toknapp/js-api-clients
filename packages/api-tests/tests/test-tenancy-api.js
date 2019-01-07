@@ -2,14 +2,16 @@ const util = require('util');
 const setTimeoutPromise = util.promisify(setTimeout);
 
 const test = require('tape');
-var xmlParser = require('fast-xml-parser');
+const xmlParser = require('fast-xml-parser');
 
 const cryptoRandomString = require('crypto-random-string');
+
+const { EthereumAndErc20Faucet } = require('../faucet.js');
 
 const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 
-const { inspect, tErrorFail, readlineQuestionPromise } = require('../util.js');
+const { inspect, tErrorFail, tCreateUser, tEcho, tWaitForWalletActivation, readlineQuestionPromise } = require('../util.js');
 
 const { test_config } = require('./cli-options.js');
 
@@ -53,23 +55,15 @@ test('Testing echo endpoint', async function (t) {
 });
 
 test('Testing users.create()', async function (t) {
-  const username = cryptoRandomString(10);
-  const password = cryptoRandomString(10);
-  let user;
-  try {
-    user = await tenancy.users.create(username, password);
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Creating the user failed.');
-  }
+  const { username, password, recoverykit } = await tCreateUser(t, tenancy);
+  if (! username) return;
 
-  t.equal(user.username, username, 'actual and expected username are equal');
-  const isRecoveryKitValidXml = (xmlParser.validate(user.recoverykit) === true);
+  const isRecoveryKitValidXml = (xmlParser.validate(recoverykit) === true);
   t.ok(isRecoveryKitValidXml, 'Recovery Kit is valid XML');
   if (isRecoveryKitValidXml) {
     let jsonObj;
     try {
-      jsonObj = xmlParser.parse(user.recoverykit, {ignoreAttributes:false});
+      jsonObj = xmlParser.parse(recoverykit, {ignoreAttributes:false});
       t.ok('svg' in jsonObj, 'Recovery Kit SVG has <svg> root element.');
       t.ok('path' in jsonObj['svg'], 'SVG has <path> element.');
       t.ok('@_d' in jsonObj['svg']['path'], 'SVG <path> element has "d" attribute.');
@@ -93,17 +87,9 @@ test('Testing users.list()', async function (t) {
   await deleteAllTestUsers();
 
   for (let i = 0; i < NUMBER_OF_USERS; i++) {
-    const username = cryptoRandomString(10);
-    const password = cryptoRandomString(10);
-    let user;
-    try {
-      user = await tenancy.users.create(username, password);
-    }
-    catch (error) {
-      return tErrorFail(t, error, 'Creating the user failed.');
-    }
-    t.equal(user.username, username, 'actual and expected username are equal');
-    usernames.add(user.username);
+    const { username, password } = await tCreateUser(t, tenancy);
+    if (! username) return;
+    usernames.add(username);
   }
 
   t.comment('Test listing all users and retrieving each one of them.')
@@ -136,58 +122,14 @@ test('Testing users.list()', async function (t) {
 });
 
 test('Testing users.updatePassword()', async function (t) {
-  const username = cryptoRandomString(10);
-  const password = cryptoRandomString(10);
-  let user;
-  let echo;
+  const { username, password } = await tCreateUser(t, tenancy);
+  if (! username) return;
 
-  try {
-    user = await tenancy.users.create(username, password);
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Creating the user failed.');
-  }
+  t.comment('See if OAuth2 with original password works.');
+  const echoSuccess = await tEcho(t, getClienteleAPI(username, password));
+  if (! echoSuccess) return;
 
-  t.equal(user.username, username, 'actual and expected username are equal');
-
-  try {
-    echo = await getClienteleAPI(username, password).echo('all good');
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Either obtaining the OAuth2 token or calling the echo endpoint failed.');
-  }
-  t.equal(echo, 'all good', 'OAuth2 with original password works.');
-
-  // console.log(await readlineQuestionPromise('How about a little wait here?'));
-
-  // Poll user's wallets to see when seed generation has finished. Prefer
-  // polling over the API Key callback, because this test script might run in
-  // places which are not able to receive callbacks.
-  const MAX_WAIT = 3 * 60;
-  const waitingForGenSeed = getClienteleAPI(username, password);
-  let isGenSeedFinished;
-  let secondsWaitedForGenSeed = 0;
-  do {
-    isGenSeedFinished = true;
-    for await (const wallet of waitingForGenSeed.wallets.list()) {
-      inspect(secondsWaitedForGenSeed);
-      inspect(wallet);
-      if (wallet.status != 'ACTIVE' || wallet.address === null) {
-        isGenSeedFinished = false;
-        break;
-      }
-    }
-    if (! isGenSeedFinished) {
-      // Sleep for a second, then try again.
-      await setTimeoutPromise(1000);
-    }
-    secondsWaitedForGenSeed++;
-  }
-  while (! isGenSeedFinished && secondsWaitedForGenSeed < MAX_WAIT);
-  t.ok(secondsWaitedForGenSeed < MAX_WAIT, `Waited less than ${MAX_WAIT} seconds for seed generation.`);
-
-  const GRACE_PERIOD = 10;
-  await setTimeoutPromise(GRACE_PERIOD * 1000);
+  await tWaitForWalletActivation(t, getClienteleAPI(username, password));
 
   const newPassword = cryptoRandomString(10);
 
@@ -202,35 +144,23 @@ test('Testing users.updatePassword()', async function (t) {
 
   try {
     echo = await getClienteleAPI(username, password).echo('all good');
+    t.fail('OAuth2 with original password should have failed, but did not.');
   }
   catch (error) {
     t.equal(error.response.status, 401, 'OAuth2 with original password fails with status 401.');
     t.equal(error.response.data.error, 'invalid_grant', 'OAuth2 with original password fails with error code "invalid_grant".');
   }
 
-  try {
-    echo = await getClienteleAPI(username, newPassword).echo('all good');
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Either obtaining the OAuth2 token or calling the echo endpoint failed.');
-  }
-  t.equal(echo, 'all good', 'OAuth2 with new password works.');
+  t.comment('See if OAuth2 with new password works.');
+  const echoSuccess = await tEcho(t, getClienteleAPI(username, newPassword));
+  if (! echoSuccess) return;
 
   t.end();
 });
 
 test('Testing users.delete()', async function (t) {
-  const username = cryptoRandomString(10);
-  const password = cryptoRandomString(10);
-  let user;
-  try {
-    user = await tenancy.users.create(username, password);
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Creating the user failed.');
-  }
-
-  t.equal(user.username, username, 'actual and expected username are equal');
+  const { username, password } = await tCreateUser(t, tenancy);
+  if (! username) return;
 
   let isDeleted;
   try {
@@ -248,7 +178,7 @@ test('Testing users.delete()', async function (t) {
 
 test('Testing wallets.list() and wallets.retrieve()', async function (t) {
 
-  t.comment('Test listing all wallets of one user, and retrieving each one of them.')
+  t.comment('Test listing all wallets of the tenant, and retrieving each one of them.')
   for await (const wallet of tenancy.wallets.list()) {
     // console.log('Inspecting listed wallet:');
     // inspect(wallet);

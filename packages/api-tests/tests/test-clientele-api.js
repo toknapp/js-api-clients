@@ -2,6 +2,7 @@ const util = require('util');
 const setTimeoutPromise = util.promisify(setTimeout);
 
 const test = require('tape');
+const xmlParser = require('fast-xml-parser');
 
 const cryptoRandomString = require('crypto-random-string');
 
@@ -10,7 +11,7 @@ const { EthereumAndErc20Faucet } = require('../faucet.js');
 const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 
-const { inspect, tErrorFail } = require('../util.js');
+const { inspect, tErrorFail, tCreateUser, tEcho, tWaitForWalletActivation, readlineQuestionPromise } = require('../util.js');
 
 const { test_config } = require('./cli-options.js');
 
@@ -19,7 +20,6 @@ const tenancy = new UpvestTenancyAPI(
   test_config.first_apikey.key,
   test_config.first_apikey.secret,
   test_config.first_apikey.passphrase_last_chance_to_see,
-  // true
 );
 
 const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
@@ -30,54 +30,22 @@ const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
   password
 );
 
-test('Testing valid OAuth2 credentials succeed', async function (t) {
-  const username = cryptoRandomString(10);
-  const password = cryptoRandomString(10);
-  let user;
-  try {
-    user = await tenancy.users.create(username, password);
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Creating the user failed.');
-  }
 
-  t.equal(user.username, username, 'actual and expected username are equal');
-
-  const clientele = new UpvestClienteleAPI(
-    test_config.baseURL,
-    test_config.first_oauth2_client.client_id,
-    test_config.first_oauth2_client.client_secret,
-    username,
-    password
-  );
-
-  let echo;
-  try {
-    echo = await clientele.echo('Hi there!');
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Either obtaining the OAuth2 token or calling the echo endpoint failed.');
-  }
-
-  t.equal(echo, 'Hi there!', 'actual and expected OAuth2 echo are equal');
+test('Testing that valid OAuth2 credentials succeed + Testing OAuth2 echo endpoint', async function (t) {
+  const { username, password } = await tCreateUser(t, tenancy);
+  if (! username) return;
+  const clientele = getClienteleAPI(username, password);
+  const echoSuccess = await tEcho(t, clientele);
+  if (! echoSuccess) return;
   t.end();
 });
 
 
-test('Testing invalid OAuth2 credentials fail', async function (t) {
-  const username = cryptoRandomString(10);
-  const password = cryptoRandomString(10);
-  let user;
-  try {
-    user = await tenancy.users.create(username, password);
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Creating the user failed.');
-  }
+test('Testing that invalid OAuth2 credentials fail', async function (t) {
+  const { username, password } = await tCreateUser(t, tenancy);
+  if (! username) return;
 
-  t.equal(user.username, username, 'actual and expected username are equal');
-
-  const variants_of_missing = [
+  const variantsOfMissing = [
     [{username: null,     password: null},     400, 'invalid_request'],
     [{username: username, password: null},     400, 'invalid_request'],
     [{username: null,     password: password}, 400, 'invalid_request'],
@@ -86,18 +54,13 @@ test('Testing invalid OAuth2 credentials fail', async function (t) {
     [{username: 'wrong',  password: 'wrong'},  401, 'invalid_grant'],
   ];
 
-  for (const [{username, password}, expectedStatus, expectedCode] of variants_of_missing) {
-    const clientele = new UpvestClienteleAPI(
-      test_config.baseURL,
-      test_config.first_oauth2_client.client_id,
-      test_config.first_oauth2_client.client_secret,
-      username,
-      password
-    );
+  for (const [{username, password}, expectedStatus, expectedCode] of variantsOfMissing) {
+    const clientele = getClienteleAPI(username, password);
 
     let echo;
     try {
       echo = await clientele.echo('Hi there!');
+      t.fail('OAuth2 with invalid credentials should have failed, but did not.');
     }
     catch (error) {
       t.equal(error.response.status, expectedStatus, `Response status is ${expectedStatus}.`);
@@ -109,62 +72,11 @@ test('Testing invalid OAuth2 credentials fail', async function (t) {
 });
 
 
-test('Testing OAuth2 echo endpoint', async function (t) {
-  const username = cryptoRandomString(10);
-  const password = cryptoRandomString(10);
-  let user;
-  try {
-    user = await tenancy.users.create(username, password);
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Creating the user failed.');
-  }
-
-  t.equal(user.username, username, 'actual and expected username are equal');
-
-  const clientele = new UpvestClienteleAPI(
-    test_config.baseURL,
-    test_config.first_oauth2_client.client_id,
-    test_config.first_oauth2_client.client_secret,
-    username,
-    password
-  );
-
-  let echo;
-  try {
-    echo = await clientele.echo('Hi there!');
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Either obtaining the OAuth2 token or calling the echo endpoint failed.');
-  }
-
-  // t.comment('Inspecting echo:');
-  // inspect(echo);
-  t.equal(echo, 'Hi there!', 'actual and expected OAuth2 echo are equal');
-  t.end();
-});
-
-
 test('Testing wallets.list() and wallets.retrieve()', async function (t) {
-  const username = cryptoRandomString(10);
-  const password = cryptoRandomString(10);
-  let user;
-  try {
-    user = await tenancy.users.create(username, password);
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Creating the user failed.');
-  }
+  const { username, password } = await tCreateUser(t, tenancy);
+  if (! username) return;
 
-  t.equal(user.username, username, 'actual and expected username are equal');
-
-  const clientele = new UpvestClienteleAPI(
-    test_config.baseURL,
-    test_config.first_oauth2_client.client_id,
-    test_config.first_oauth2_client.client_secret,
-    username,
-    password
-  );
+  const clientele = getClienteleAPI(username, password);
 
   t.comment('Test listing all wallets of one user, and retrieving each one of them.')
   for await (const wallet of clientele.wallets.list()) {
@@ -215,49 +127,12 @@ test('Testing wallets.list() and wallets.retrieve()', async function (t) {
 });
 
 test('Testing transactions.create()', async function (t) {
-  const username = cryptoRandomString(10);
-  const password = cryptoRandomString(10);
-  let user;
-  try {
-    user = await tenancy.users.create(username, password);
-  }
-  catch (error) {
-    return tErrorFail(t, error, 'Creating the user failed.');
-  }
-
-  t.equal(user.username, username, 'actual and expected username are equal');
-
-  t.comment('Wait for seed generation.')
-  // Poll user's wallets to see when seed generation has finished. Prefer
-  // polling over the API Key callback, because this test script might run in
-  // places which are not able to receive callbacks.
-  const MAX_WAIT = 3 * 60;
-  const waitingForGenSeed = getClienteleAPI(username, password);
-  let isGenSeedFinished;
-  let secondsWaitedForGenSeed = 0;
-  do {
-    isGenSeedFinished = true;
-    for await (const wallet of waitingForGenSeed.wallets.list()) {
-      t.comment(`Waited ${secondsWaitedForGenSeed} seconds.`);
-      // inspect(wallet);
-      if (wallet.status != 'ACTIVE' || wallet.address === null) {
-        isGenSeedFinished = false;
-        break;
-      }
-    }
-    if (! isGenSeedFinished) {
-      // Sleep for a second, then try again.
-      await setTimeoutPromise(1000);
-    }
-    secondsWaitedForGenSeed++;
-  }
-  while (! isGenSeedFinished && secondsWaitedForGenSeed < MAX_WAIT);
-  t.ok(secondsWaitedForGenSeed < MAX_WAIT, `Waited less than ${MAX_WAIT} seconds for seed generation.`);
-
-  const GRACE_PERIOD = 10;
-  await setTimeoutPromise(GRACE_PERIOD * 1000);
+  const { username, password } = await tCreateUser(t, tenancy);
+  if (! username) return;
 
   const clientele = getClienteleAPI(username, password);
+
+  await tWaitForWalletActivation(t, clientele);
 
   t.comment('Test listing all wallets of one user, and generating a transaction for those wallets which are Ethereum or Erc20 wallets.')
   for await (const wallet of clientele.wallets.list()) {
