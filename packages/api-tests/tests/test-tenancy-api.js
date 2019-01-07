@@ -30,23 +30,6 @@ const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
   password
 );
 
-// Delete all previous test users.
-async function deleteAllTestUsers() {
-  for await (const user of tenancy.users.list()) {
-    try {
-      const response = await tenancy.users.delete(user.username);
-    }
-    catch (error) {
-      tErrorFail(t, error, `Deleting test user "${user.username}" failed.`);
-    }
-  }
-}
-
-test('Running deleteAllTestUsers() first', async function (t) {
-  await deleteAllTestUsers();
-  t.end();
-});
-
 test('Testing echo endpoint', async function (t) {
   const echo = await tenancy.echo('hello');
   // console.dir(echo, {depth:null, colors:true});
@@ -83,12 +66,18 @@ test('Testing users.list()', async function (t) {
   const NUMBER_OF_USERS = (3 * PAGE_LENGTH);
   const usernames = new Set();
 
-  // Start with clean slate.
-  await deleteAllTestUsers();
+  for await (const user of tenancy.users.list()) {
+    usernames.add(user.username);
+  }
 
-  for (let i = 0; i < NUMBER_OF_USERS; i++) {
-    const { username, password } = await tCreateUser(t, tenancy);
-    if (! username) return;
+  const numberOfUsersToCreate = NUMBER_OF_USERS - usernames.size;
+  const userPromises = [];
+  for (let i = 0; i < numberOfUsersToCreate; i++) {
+    userPromises.push(tCreateUser(t, tenancy));
+  }
+  const userResults = await Promise.all(userPromises);
+  for (const { username, password } of userResults) {
+    if (username === null) return;
     usernames.add(username);
   }
 
@@ -101,32 +90,37 @@ test('Testing users.list()', async function (t) {
     catch (error) {
       return tErrorFail(t, error, 'Retrieving the user failed.');
     }
-    t.ok(usernames.has(retrievedUser.username), 'Retrieved user is "known" in our list of created test users.');
+    t.ok(usernames.has(retrievedUser.username), 'Retrieved user is "known" in our list of existing or created test users.');
   }
 
-  t.comment('Test listing all users and deleting each one of them, thereby changing the underlying list.')
-  for await (const user of tenancy.users.list()) {
-    let isDeleted;
-    try {
-      isDeleted = await tenancy.users.delete(user.username);
-    }
-    catch (error) {
-      return tErrorFail(t, error, 'Deleting the user failed.');
-    }
-    t.ok(isDeleted, 'Deleted user successfully.');
-    t.ok(usernames.delete(user.username), 'Deleted user was "known" in our list of created test users.');
-  }
-  t.equal(usernames.size, 0, 'No left-overs, all users of our list of created users were successfully deleted.');
+  // TODO Figure out a way of changing the underlying list without deleting
+  // users which have been used for Tx testing and therefore have potentially
+  // stuck funds to recover.
+
+  // t.comment('Test listing all users and deleting each one of them, thereby changing the underlying list.')
+  // for await (const user of tenancy.users.list()) {
+  //   let isDeleted;
+  //   try {
+  //     isDeleted = await tenancy.users.delete(user.username);
+  //   }
+  //   catch (error) {
+  //     return tErrorFail(t, error, 'Deleting the user failed.');
+  //   }
+  //   t.ok(isDeleted, 'Deleted user successfully.');
+  //   t.ok(usernames.delete(user.username), 'Deleted user was "known" in our list of created test users.');
+  // }
+  // t.equal(usernames.size, 0, 'No left-overs, all users of our list of created users were successfully deleted.');
 
   t.end();
 });
 
 test('Testing users.updatePassword()', async function (t) {
+  let echoSuccess;
   const { username, password } = await tCreateUser(t, tenancy);
   if (! username) return;
 
   t.comment('See if OAuth2 with original password works.');
-  const echoSuccess = await tEcho(t, getClienteleAPI(username, password));
+  echoSuccess = await tEcho(t, getClienteleAPI(username, password));
   if (! echoSuccess) return;
 
   await tWaitForWalletActivation(t, getClienteleAPI(username, password));
@@ -152,7 +146,7 @@ test('Testing users.updatePassword()', async function (t) {
   }
 
   t.comment('See if OAuth2 with new password works.');
-  const echoSuccess = await tEcho(t, getClienteleAPI(username, newPassword));
+  echoSuccess = await tEcho(t, getClienteleAPI(username, newPassword));
   if (! echoSuccess) return;
 
   t.end();

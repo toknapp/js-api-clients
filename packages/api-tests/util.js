@@ -1,3 +1,6 @@
+const util = require('util');
+const setTimeoutPromise = util.promisify(setTimeout);
+
 const { createInterface } = require('readline');
 
 const cryptoRandomString = require('crypto-random-string');
@@ -56,6 +59,7 @@ const tErrorFail = (t, error, message) => {
 };
 
 const tCreateUser = async (t, tenancy) => {
+  t.comment('Create user.')
   const username = cryptoRandomString(10);
   const password = cryptoRandomString(10);
   let user;

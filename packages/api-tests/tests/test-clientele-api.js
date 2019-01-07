@@ -149,14 +149,11 @@ test('Testing transactions.create()', async function (t) {
     if (('faucet' in test_config) && ('ethereum' in test_config.faucet)) {
       faucetConfig = test_config.faucet.ethereum;
       inspect('User credentials, in case the faucetting and/or test Tx fails:', {username, password});
-      t.comment('Create faucet.')
+      t.comment('Create faucet.');
       const faucet = new EthereumAndErc20Faucet(faucetConfig);
-      t.comment('Faucet some ETH to new wallet.')
-      const faucetResultsEth = await faucet.faucetEth(wallet.address, faucetConfig.gasPrice * faucetConfig.erc20.gasLimit);
-      inspect('faucetResultsEth ==', faucetResultsEth);
-      t.comment('Faucet some ERC20 tokens to new wallet.')
-      const faucetResultsErc20 = await faucet.faucetErc20(wallet.address, faucetConfig.erc20.amount);
-      inspect('faucetResultsErc20 ==', faucetResultsErc20);
+      t.comment('Faucet some ETH and some some ERC20 tokens to the new wallet.');
+      const faucetResults = await faucet.run(wallet.address, faucetConfig.gasPrice * faucetConfig.erc20.gasLimit, faucetConfig.erc20.amount, t.comment);
+      inspect('faucetResults ==', faucetResults);
       faucet.disconnect();
     }
     else {
