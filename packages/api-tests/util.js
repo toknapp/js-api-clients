@@ -97,13 +97,13 @@ const tWaitForWalletActivation = async (t, api) => {
   // Poll user's wallets to see when seed generation has finished. Prefer
   // polling over the API Key callback, because this test script might run in
   // places which are not able to receive callbacks.
-  const MAX_WAIT = 3 * 60;
+  const MAX_RETRIES = 3 * 60;
   let isGenSeedFinished;
-  let secondsWaitedForGenSeed = 0;
+  let retries = 0;
   do {
     isGenSeedFinished = true;
     for await (const wallet of api.wallets.list()) {
-      t.comment(`Waited ${secondsWaitedForGenSeed} seconds.`);
+      t.comment(`Waited ${retries} seconds.`);
       // inspect(wallet);
       if (wallet.status != 'ACTIVE' || wallet.address === null) {
         isGenSeedFinished = false;
@@ -114,12 +114,12 @@ const tWaitForWalletActivation = async (t, api) => {
       // Sleep for a second, then try again.
       await setTimeoutPromise(1000);
     }
-    secondsWaitedForGenSeed++;
+    retries++;
   }
-  while (! isGenSeedFinished && secondsWaitedForGenSeed < MAX_WAIT);
-  t.ok(secondsWaitedForGenSeed < MAX_WAIT, `Waited less than ${MAX_WAIT} seconds for seed generation.`);
+  while (! isGenSeedFinished && retries < MAX_RETRIES);
+  t.ok(retries < MAX_RETRIES, `Waited less than ${MAX_RETRIES} seconds for seed generation.`);
 
-  const GRACE_PERIOD = Math.min(10, secondsWaitedForGenSeed);
+  const GRACE_PERIOD = Math.min(10, (retries - 1));
   t.comment(`Waiting for an additional grace period of ${GRACE_PERIOD} seconds.`)
   await setTimeoutPromise(GRACE_PERIOD * 1000);
 };
