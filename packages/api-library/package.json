@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@upvest/api-library",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Code shared between the Upvest Clientele API and Upvest Tenancy API",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -28,6 +28,5 @@
   "bugs": {
     "url": "https://github.com/toknapp/js-api-clients/issues"
   },
-  "homepage": "https://github.com/toknapp/js-api-clients#readme",
-  "dependencies": {}
+  "homepage": "https://github.com/toknapp/js-api-clients#readme"
 }
