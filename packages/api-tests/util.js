@@ -58,6 +58,16 @@ const tErrorFail = (t, error, message) => {
   return false;
 };
 
+const tGetCachedOrCreateUser = async (t, tenancy) => {
+  if (! tenancy._cachedUser) {
+    tenancy._cachedUser = tCreateUser(t, tenancy);
+  }
+  else {
+    t.comment('Re-use cached user.')
+  }
+  return tenancy._cachedUser;
+};
+
 const tCreateUser = async (t, tenancy) => {
   t.comment('Create user.')
   const username = cryptoRandomString(10);
@@ -147,6 +157,6 @@ function readlineQuestionPromise(prompt) {
 
 module.exports = {
   setDifference, setEqual, inspect, inspectError,
-  tErrorFail, tCreateUser, tEcho, tWaitForWalletActivation,
+  tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho, tWaitForWalletActivation,
   readlineQuestionPromise
 };

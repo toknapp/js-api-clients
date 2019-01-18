@@ -11,7 +11,7 @@ const { EthereumAndErc20Faucet } = require('../faucet.js');
 const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 
-const { inspect, tErrorFail, tCreateUser, tEcho, tWaitForWalletActivation, readlineQuestionPromise } = require('../util.js');
+const { inspect, tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho, tWaitForWalletActivation, readlineQuestionPromise } = require('../util.js');
 
 const { test_config } = require('./cli-options.js');
 
