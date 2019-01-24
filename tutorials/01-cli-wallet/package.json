@@ -1,0 +1,28 @@
+{
+  "name": "cli-wallet-tutorial",
+  "version": "0.0.0",
+  "private": false,
+  "description": "Tutorial to make a CLI wallet",
+  "keywords": [],
+  "homepage": "https://github.com/toknapp/js-api-clients",
+  "bugs": "https://github.com/toknapp/js-api-clients/issues",
+  "repository": "https://github.com/toknapp/js-api-clients",
+  "license": "MIT",
+  "author": "Upvest GmbH",
+  "contributors": [
+    "Frederik Krautwald <fkrautwald@gmail.com> (https://github.com/Frikki)"
+  ],
+  "main": "src/index.js",
+  "bin": {
+    "cli-wallet": "bin/cli-wallet.js"
+  },
+  "directories": {
+    "src": "./src"
+  },
+  "scripts": {},
+  "dependencies": {
+    "axios": "^0.18.0",
+    "minimist": "^1.2.0"
+  },
+  "devDependencies": {}
+}
