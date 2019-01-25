@@ -5,7 +5,7 @@
  */
 
 const axios = require("axios");
-const { BASE_URL, API_VERSION, TENANCY_API_KEY } = require("../config");
+const { BASE_URL, API_VERSION } = require("../config");
 const { generateTimestamp } = require("../generateTimestamp");
 const { generateSignature } = require("../generateSignature");
 const { generateMessageHeaders } = require("../generateMessageHeaders");
