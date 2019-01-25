@@ -8,6 +8,7 @@ const axios = require("axios");
 const { BASE_URL, API_VERSION, TENANCY_API_KEY } = require("../config");
 const { generateTimestampHeader } = require("../generateTimestampHeader");
 const { generateSignatureHeader } = require("../generateSignatureHeader");
+const { generateHeaders } = require("../generateHeaders");
 
 const LIST_USERS_PATH = `/${API_VERSION}/tenancy/users/`;
 const RESOURCE_URL = `${BASE_URL}${LIST_USERS_PATH}`;
@@ -26,16 +27,10 @@ async function listUsers() {
     queryParams: "",
     body: messageBody
   };
-  // Assign signature from message parts object.
+  // Generate signature from the message parts object.
   const signature = generateSignatureHeader(messageParts);
-  // Create the request headers list.
-  const headers = {
-    "Content-Type": "application/json",
-    "X-UP-API-Key": TENANCY_API_KEY.key,
-    "X-UP-API-Passphrase": TENANCY_API_KEY.passphrase,
-    "X-UP-API-Timestamp": timestamp,
-    "X-UP-API-Signature": signature
-  };
+  // Generate the request headers list.
+  const headers = generateHeaders({ timestamp, signature });
   // Make configuration for axios.
   const axiosConfig = {
     method: REQUEST_METHOD,
