@@ -8,7 +8,7 @@ const axios = require("axios");
 const { BASE_URL, API_VERSION, TENANCY_API_KEY } = require("../config");
 const { generateTimestampHeader } = require("../generateTimestampHeader");
 const { generateSignatureHeader } = require("../generateSignatureHeader");
-const { generateHeaders } = require("../generateHeaders");
+const { generateMessageHeaders } = require("../generateMessageHeaders");
 
 const ADD_USER_PATH = `/${API_VERSION}/tenancy/users/`;
 const RESOURCE_URL = `${BASE_URL}${ADD_USER_PATH}`;
@@ -32,7 +32,7 @@ async function registerUser({ username, password }) {
   // Assign signature from message parts object.
   const signature = generateSignatureHeader(messageParts);
   // Generate the request headers list.
-  const headers = generateHeaders({ timestamp, signature });
+  const headers = generateMessageHeaders({ timestamp, signature });
   // Make configuration for axios.
   const axiosConfig = {
     method: REQUEST_METHOD,

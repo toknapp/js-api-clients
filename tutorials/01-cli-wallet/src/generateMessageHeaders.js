@@ -6,8 +6,8 @@
 
 const { TENANCY_API_KEY } = require("./config");
 
-function generateHeaders({ timestamp, signature }) {
-  // Create the request headers list.
+function generateMessageHeaders({ timestamp, signature }) {
+  // Create the message headers list.
   const headers = {
     "Content-Type": "application/json",
     "X-UP-API-Key": TENANCY_API_KEY.key,
@@ -16,9 +16,9 @@ function generateHeaders({ timestamp, signature }) {
     "X-UP-API-Signature": signature
   };
 
-  // Return the headers list.
+  // Return the message headers list.
   return headers;
 }
 
-// Expose the `generateHeaders` function.
-exports.generateHeaders = generateHeaders;
+// Expose the `generateMessageHeaders` function.
+exports.generateMessageHeaders = generateMessageHeaders;
