@@ -8,6 +8,7 @@ const axios = require("axios");
 const { BASE_URL, API_VERSION, TENANCY_API_KEY } = require("../config");
 const { generateTimestampHeader } = require("../generateTimestampHeader");
 const { generateSignatureHeader } = require("../generateSignatureHeader");
+const { generateHeaders } = require("../generateHeaders");
 
 const ADD_USER_PATH = `/${API_VERSION}/tenancy/users/`;
 const RESOURCE_URL = `${BASE_URL}${ADD_USER_PATH}`;
@@ -18,7 +19,7 @@ async function registerUser({ username, password }) {
   const timestamp = generateTimestampHeader();
   // Assign payload body with username and password.
   const payloadBody = { username, password };
-  // Assign stringified message body.
+  // Write payload body as string.
   const messageBody = JSON.stringify(payloadBody);
   // Create message parts object to be signed.
   const messageParts = {
@@ -30,14 +31,8 @@ async function registerUser({ username, password }) {
   };
   // Assign signature from message parts object.
   const signature = generateSignatureHeader(messageParts);
-  // Create the request headers list.
-  const headers = {
-    "Content-Type": "application/json",
-    "X-UP-API-Key": TENANCY_API_KEY.key,
-    "X-UP-API-Passphrase": TENANCY_API_KEY.passphrase,
-    "X-UP-API-Timestamp": timestamp,
-    "X-UP-API-Signature": signature
-  };
+  // Generate the request headers list.
+  const headers = generateHeaders({ timestamp, signature });
   // Make configuration for axios.
   const axiosConfig = {
     method: REQUEST_METHOD,
