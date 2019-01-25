@@ -5,7 +5,9 @@
  */
 
 const crypto = require("crypto");
-const { TENANCY_API_KEY } = require("./config");
+const {
+  TENANCY_API_KEY: { secret }
+} = require("./config");
 
 const normalizationForMessageParts = {
   timestamp: timestamp => bufferFrom(timestamp),
@@ -26,7 +28,7 @@ function normalizeQueryParams(queryParams) {
 
 function generateSignature(messageParts) {
   const algorithm = "sha512";
-  const hmac = crypto.createHmac(algorithm, TENANCY_API_KEY.secret);
+  const hmac = crypto.createHmac(algorithm, secret);
 
   const messageKeys = Object.keys(messageParts);
   for (const key of messageKeys) {
