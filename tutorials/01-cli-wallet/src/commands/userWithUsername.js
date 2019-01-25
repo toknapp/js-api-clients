@@ -6,7 +6,7 @@
 
 const axios = require("axios");
 const { BASE_URL, API_VERSION, TENANCY_API_KEY } = require("../config");
-const { generateTimestampHeader } = require("../generateTimestampHeader");
+const { generateTimestamp } = require("../generateTimestamp");
 const { generateSignatureHeader } = require("../generateSignatureHeader");
 const { generateMessageHeaders } = require("../generateMessageHeaders");
 
@@ -15,7 +15,7 @@ const REQUEST_METHOD = "GET";
 
 async function userWithUsername({ username }) {
   // Assign new timestamp to make the API call.
-  const timestamp = generateTimestampHeader();
+  const timestamp = generateTimestamp();
   // Add username parameter to path.
   const userWithUsernamePath = `${USER_INFO_PATH}${username}`;
   // Assign stringified message body.

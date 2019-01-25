@@ -6,7 +6,7 @@
 
 const axios = require("axios");
 const { BASE_URL, API_VERSION, TENANCY_API_KEY } = require("../config");
-const { generateTimestampHeader } = require("../generateTimestampHeader");
+const { generateTimestamp } = require("../generateTimestamp");
 const { generateSignatureHeader } = require("../generateSignatureHeader");
 const { generateMessageHeaders } = require("../generateMessageHeaders");
 
@@ -16,7 +16,7 @@ const REQUEST_METHOD = "POST";
 
 async function registerUser({ username, password }) {
   // Assign new timestamp to make the API call.
-  const timestamp = generateTimestampHeader();
+  const timestamp = generateTimestamp();
   // Assign payload body with username and password.
   const payloadBody = { username, password };
   // Write payload body as string.
