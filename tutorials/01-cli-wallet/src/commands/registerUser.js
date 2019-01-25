@@ -51,7 +51,7 @@ async function registerUser({ username, password }) {
     // Catch an eventual error.
   } catch (error) {
     // Log the error to the console.
-    console.error(error.response.data.error);
+    console.error(error.response);
   }
 }
 
