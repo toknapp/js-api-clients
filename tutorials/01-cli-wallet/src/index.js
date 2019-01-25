@@ -7,7 +7,7 @@
 const minimist = require("minimist");
 
 const INTERPRETER_AND_FILE_ARGS_LENGTH = 2;
-const REGISTER_USER_CMD = "users:register";
+const REGISTER_USER_CMD = "user:register";
 const LIST_USERS_CMD = "users";
 const USER_WITH_USERNAME_CMD = "user";
 
