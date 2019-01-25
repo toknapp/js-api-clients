@@ -7,7 +7,7 @@
 const axios = require("axios");
 const { BASE_URL, API_VERSION } = require("../config");
 const { generateTimestamp } = require("../generateTimestamp");
-const { generateSignatureHeader } = require("../generateSignatureHeader");
+const { generateSignature } = require("../generateSignature");
 const { generateMessageHeaders } = require("../generateMessageHeaders");
 
 const USER_INFO_PATH = `/${API_VERSION}/tenancy/users/`;
@@ -29,7 +29,7 @@ async function deregisterUserWithUsername({ username }) {
     body: messageBody
   };
   // Generate signature from the message parts object.
-  const signature = generateSignatureHeader(messageParts);
+  const signature = generateSignature(messageParts);
   // Generate the request headers list.
   const headers = generateMessageHeaders({ timestamp, signature });
   // Assemble resource URL to make the API call.

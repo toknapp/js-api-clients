@@ -24,7 +24,7 @@ function normalizeQueryParams(queryParams) {
   return queryParams;
 }
 
-function generateSignatureHeader(messageParts) {
+function generateSignature(messageParts) {
   const algorithm = "sha512";
   const hmac = crypto.createHmac(algorithm, TENANCY_API_KEY.secret);
 
@@ -37,4 +37,4 @@ function generateSignatureHeader(messageParts) {
   return hmac.digest(encoding);
 }
 
-exports.generateSignatureHeader = generateSignatureHeader;
+exports.generateSignature = generateSignature;
