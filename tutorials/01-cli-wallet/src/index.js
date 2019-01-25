@@ -10,6 +10,7 @@ const INTERPRETER_AND_FILE_ARGS_LENGTH = 2;
 const REGISTER_USER_CMD = "user:register";
 const LIST_USERS_CMD = "users";
 const USER_WITH_USERNAME_CMD = "user";
+const DEREGISTER_USER_WITH_USERNAME_CMD = "user:deregister";
 
 module.exports = () => {
   console.log("Welcome to Upvest CLI!");
@@ -28,6 +29,12 @@ module.exports = () => {
     case USER_WITH_USERNAME_CMD:
       const { userWithUsername } = require("./commands/userWithUsername");
       userWithUsername({ username: args._[1] }).then(console.log);
+      break;
+    case DEREGISTER_USER_WITH_USERNAME_CMD:
+      const {
+        deregisterUserWithUsername
+      } = require("./commands/deregisterUserWithUsername");
+      deregisterUserWithUsername({ username: args._[1] }).then(console.log);
       break;
     default:
       console.error(`"${command}" is not a valid command!`);
