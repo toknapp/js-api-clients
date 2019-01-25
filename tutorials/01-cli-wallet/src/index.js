@@ -23,7 +23,7 @@ module.exports = () => {
       break;
     case LIST_USERS_CMD:
       const { listUsers } = require("./commands/listUsers");
-      listUsers(args).then(console.log);
+      listUsers().then(console.log);
       break;
     case USER_WITH_USERNAME_CMD:
       const { userWithUsername } = require("./commands/userWithUsername");
