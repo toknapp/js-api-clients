@@ -32,6 +32,7 @@ async function userWithUsername({ username }) {
   const signature = generateSignatureHeader(messageParts);
   // Generate the request headers list.
   const headers = generateHeaders({ timestamp, signature });
+  // Assemble resource URL to make the API call.
   const resourceUrl = `${BASE_URL}${userWithUsernamePath}`;
   // Make configuration for axios.
   const axiosConfig = {
