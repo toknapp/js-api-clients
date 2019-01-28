@@ -4,11 +4,11 @@
  * License is found in the LICENSE file in the root directory of this source tree.
  */
 
-const axios = require("axios");
 const { BASE_URL, API_VERSION } = require("../config");
 const { generateTimestamp } = require("../generateTimestamp");
 const { generateSignature } = require("../generateSignature");
 const { generateMessageHeaders } = require("../generateMessageHeaders");
+const { axiosAdapter } = require("../adapters/axiosAdapter");
 
 const LIST_USERS_PATH = `/${API_VERSION}/tenancy/users/`;
 const RESOURCE_URL = `${BASE_URL}${LIST_USERS_PATH}`;
@@ -19,7 +19,7 @@ async function listUsers() {
   const timestamp = generateTimestamp();
   // Assign stringified message body.
   const messageBody = "";
-  // Create message parts object to be signed.
+  // Assemble message parts object to be signed.
   const messageParts = {
     timestamp,
     method: REQUEST_METHOD,
@@ -31,25 +31,15 @@ async function listUsers() {
   const signature = generateSignature(messageParts);
   // Generate the request headers list.
   const headers = generateMessageHeaders({ timestamp, signature });
-  // Make configuration for axios.
+  // Assemble configuration for axios.
   const axiosConfig = {
     method: REQUEST_METHOD,
     url: RESOURCE_URL,
     headers
   };
 
-  try {
-    // Make the asynchronous request using axios.
-    const { data } = await axios(axiosConfig);
-
-    // Return the data.
-    return data;
-
-    // Catch an eventual error.
-  } catch (error) {
-    // Log the error to the console.
-    console.error(error.response);
-  }
+  // Asynchronously return call to the API.
+  return await axiosAdapter(axiosConfig);
 }
 
 exports.listUsers = listUsers;

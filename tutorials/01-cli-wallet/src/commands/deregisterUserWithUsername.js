@@ -4,11 +4,11 @@
  * License is found in the LICENSE file in the root directory of this source tree.
  */
 
-const axios = require("axios");
 const { BASE_URL, API_VERSION } = require("../config");
 const { generateTimestamp } = require("../generateTimestamp");
 const { generateSignature } = require("../generateSignature");
 const { generateMessageHeaders } = require("../generateMessageHeaders");
+const { axiosAdapter } = require("../adapters/axiosAdapter");
 
 const USER_INFO_PATH = `/${API_VERSION}/tenancy/users/`;
 const REQUEST_METHOD = "DELETE";
@@ -41,18 +41,8 @@ async function deregisterUserWithUsername({ username }) {
     headers
   };
 
-  try {
-    // Make the asynchronous request using axios.
-    const { status, statusText } = await axios(axiosConfig);
-
-    // Return the status and status text.
-    return { status, statusText };
-
-    // Catch an eventual error.
-  } catch (error) {
-    // Log the error to the console.
-    console.error(error.response);
-  }
+  // Asynchronously return call to the API.
+  return await axiosAdapter(axiosConfig);
 }
 
 exports.deregisterUserWithUsername = deregisterUserWithUsername;
