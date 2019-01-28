@@ -24,7 +24,7 @@ async function deregisterUserWithUsername({ username }) {
   const messageParts = {
     timestamp,
     method: REQUEST_METHOD,
-    url: deregisterUserWithUsernamePath,
+    path: deregisterUserWithUsernamePath,
     queryParams: "",
     body: messageBody
   };

@@ -12,13 +12,14 @@ const {
 const normalizationForMessageParts = {
   timestamp: timestamp => bufferFrom(timestamp),
   method: method => bufferFrom(method),
-  url: url => bufferFrom(url),
+  path: path => bufferFrom(path),
   queryParams: queryParams => normalizeQueryParams(queryParams),
   body: body => bufferFrom(body)
 };
 
 function bufferFrom(string) {
   const encoding = "utf-8";
+
   return Buffer.from(string, encoding);
 }
 
@@ -36,6 +37,7 @@ function generateSignature(messageParts) {
   }
 
   const encoding = "hex";
+
   return hmac.digest(encoding);
 }
 

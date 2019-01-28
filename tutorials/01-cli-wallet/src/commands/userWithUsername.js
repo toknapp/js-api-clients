@@ -24,7 +24,7 @@ async function userWithUsername({ username }) {
   const messageParts = {
     timestamp,
     method: REQUEST_METHOD,
-    url: userWithUsernamePath,
+    path: userWithUsernamePath,
     queryParams: "",
     body: messageBody
   };

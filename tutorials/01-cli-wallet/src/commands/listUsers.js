@@ -23,7 +23,7 @@ async function listUsers() {
   const messageParts = {
     timestamp,
     method: REQUEST_METHOD,
-    url: LIST_USERS_PATH,
+    path: LIST_USERS_PATH,
     queryParams: "",
     body: messageBody
   };

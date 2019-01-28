@@ -25,7 +25,7 @@ async function registerUser({ username, password }) {
   const messageParts = {
     timestamp,
     method: REQUEST_METHOD,
-    url: ADD_USER_PATH,
+    path: ADD_USER_PATH,
     queryParams: "",
     body: messageBody
   };
