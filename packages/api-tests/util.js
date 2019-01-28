@@ -102,6 +102,29 @@ const tEcho = async (t, api) => {
   return true;
 };
 
+const tCreateWallets = async (t, api, assetIds, password) => {
+  t.comment(`Create wallets for ${assetIds.length} assets.`)
+  let createdWallets = [];
+  for (const assetId of assetIds) {
+    let wallet;
+    try {
+      wallet = await api.wallets.create(assetId, password, null);
+    }
+    catch (error) {
+      return tErrorFail(t, error, `Creating the wallet for assetId ${assetId} failed.`);
+    }
+    // t.comment('Inspecting created wallet:');
+    // inspect(wallet);
+    let createdAssetIds = [];
+    for (const balance of wallet.balances) {
+      createdAssetIds.push(balance.asset_id);
+    }
+    t.ok(-1 !== createdAssetIds.indexOf(assetId), 'Created wallet contains balance for reqested asset.');
+    createdWallets.push(wallet);
+  }
+  return createdWallets;
+};
+
 const tWaitForWalletActivation = async (t, api) => {
   t.comment('Wait for wallet activation.')
   // Poll user's wallets to see when seed generation has finished. Prefer
@@ -134,10 +157,6 @@ const tWaitForWalletActivation = async (t, api) => {
   await setTimeoutPromise(GRACE_PERIOD * 1000);
 };
 
-const tListAndRetrieveWallets = async (t, api) => {
-};
-
-
 function readlineQuestionPromise(prompt) {
   return new Promise(function promiseExecutor(resolvePromise, rejectPromise) {
     const rl = createInterface({
@@ -157,6 +176,7 @@ function readlineQuestionPromise(prompt) {
 
 module.exports = {
   setDifference, setEqual, inspect, inspectError,
-  tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho, tWaitForWalletActivation,
+  tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho,
+  tCreateWallets, tWaitForWalletActivation,
   readlineQuestionPromise
 };

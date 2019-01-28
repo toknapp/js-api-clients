@@ -11,7 +11,10 @@ const { EthereumAndErc20Faucet } = require('../faucet.js');
 const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 
-const { inspect, tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho, tWaitForWalletActivation, readlineQuestionPromise } = require('../util.js');
+const {
+  inspect, tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho,
+  tCreateWallets, tWaitForWalletActivation, readlineQuestionPromise,
+} = require('../util.js');
 
 const { test_config } = require('./cli-options.js');
 
@@ -72,13 +75,67 @@ test('Testing that invalid OAuth2 credentials fail', async function (t) {
 });
 
 
-test('Testing wallets.list() and wallets.retrieve()', async function (t) {
+test('Testing assets.list() and assets.retrieve()', async function (t) {
   const { username, password } = await tCreateUser(t, tenancy);
   if (! username) return;
 
   const clientele = getClienteleAPI(username, password);
 
+  t.comment('Test listing all assets, and retrieving each one of them.')
+  for await (const asset of clientele.assets.list()) {
+    // t.comment('Inspecting listed asset:');
+    // inspect(asset);
+    let retrievedAsset;
+    try {
+      retrievedAsset = await clientele.assets.retrieve(asset.id);
+    }
+    catch (error) {
+      return tErrorFail(t, error, 'Retrieving the asset failed.');
+    }
+    // t.comment('Inspecting retrieved asset:');
+    // inspect(retrievedAsset);
+
+    // { id: 'deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f',
+    //   name: 'Ethereum (ropsten)',
+    //   symbol: 'ETH',
+    //   exponent: 18,
+    //   protocol: 'co.upvest.kinds.Ethereum' }
+
+    t.equal(asset.id, retrievedAsset.id, 'listed and retrieved asset.id are equal');
+    t.ok(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(asset.id), 'asset.id matches UUID pattern');
+
+    t.equal(asset.name, retrievedAsset.name, 'listed and retrieved asset.name are equal');
+    t.equal(asset.symbol, retrievedAsset.symbol, 'listed and retrieved asset.symbol are equal');
+
+    t.equal(asset.exponent, retrievedAsset.exponent, 'listed and retrieved asset.exponent are equal');
+    t.equal(typeof asset.exponent, 'number', 'asset.exponent is a number');
+
+    t.equal(asset.protocol, retrievedAsset.protocol, 'listed and retrieved asset.protocol are equal');
+    t.ok(asset.protocol.startsWith('co.upvest.kinds.'), 'asset.protocol starts with "co.upvest.kinds."');
+  }
+
+  t.end();
+});
+
+
+test('Testing wallets.create(), wallets.list() and wallets.retrieve()', async function (t) {
+  const { username, password } = await tCreateUser(t, tenancy);
+  if (! username) return;
+
+  const clientele = getClienteleAPI(username, password);
+
+  const assetIds = [
+    '51bfa4b5-6499-5fe2-998b-5fb3c9403ac7',  // Arweave (internal testnet)
+    'a3c18f74-935e-5d75-bd3c-ce0fb5464414',  // Bitcoin (testnet)
+    'deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f',  // Ethereum (ropsten)
+    'cfc59efb-3b21-5340-ae96-8cadb4ce31a8',  // "COIN" Example ERC20 token
+  ];
+  const createdWallets = await tCreateWallets(t, clientele, assetIds, password);
+
+  await tWaitForWalletActivation(t, clientele);
+
   t.comment('Test listing all wallets of one user, and retrieving each one of them.')
+  let walletCount = 0;
   for await (const wallet of clientele.wallets.list()) {
     // t.comment('Inspecting listed wallet:');
     // inspect(wallet);
@@ -121,7 +178,9 @@ test('Testing wallets.list() and wallets.retrieve()', async function (t) {
 
     const walletStates = new Set(['PENDING', 'ACTIVE']);
     t.ok(walletStates.has(wallet.status), 'wallet.status is one of "PENDING" or "ACTIVE".');
+    walletCount++;
   }
+  t.equal(walletCount, assetIds.length - 1, 'Have one less wallet than number of assets because the ERC20 and Ethereum assets are merged into one wallet.');
 
   t.end();
 });
@@ -131,6 +190,14 @@ test('Testing transactions.create()', async function (t) {
   if (! username) return;
 
   const clientele = getClienteleAPI(username, password);
+
+  const assetIds = [
+    // '51bfa4b5-6499-5fe2-998b-5fb3c9403ac7',  // Arweave (internal testnet)
+    // 'a3c18f74-935e-5d75-bd3c-ce0fb5464414',  // Bitcoin (testnet)
+    // 'deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f',  // Ethereum (ropsten)
+    'cfc59efb-3b21-5340-ae96-8cadb4ce31a8',  // "COIN" Example ERC20 token
+  ];
+  const createdWallets = await tCreateWallets(t, clientele, assetIds, password);
 
   await tWaitForWalletActivation(t, clientele);
 
