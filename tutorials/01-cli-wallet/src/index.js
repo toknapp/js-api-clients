@@ -7,6 +7,8 @@
 const minimist = require("minimist");
 
 const INTERPRETER_AND_FILE_ARGS_LENGTH = 2;
+
+const ECHO_MESSAGE_CMD = "echo";
 const REGISTER_USER_CMD = "user:register";
 const LIST_USERS_CMD = "users";
 const USER_WITH_USERNAME_CMD = "user";
@@ -18,6 +20,10 @@ module.exports = () => {
   const command = args._[0];
 
   switch (command) {
+    case ECHO_MESSAGE_CMD:
+      const { echoMessageUsingGet } = require("./commands/echoMessageUsingGet");
+      echoMessageUsingGet(args._[1]).then(console.log);
+      break;
     case REGISTER_USER_CMD:
       const { registerUser } = require("./commands/registerUser");
       registerUser(args).then(console.log);
