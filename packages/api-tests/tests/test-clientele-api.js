@@ -8,6 +8,7 @@ const cryptoRandomString = require('crypto-random-string');
 
 const { EthereumAndErc20Faucet } = require('../faucet.js');
 
+const { PasswordPacker } = require('@upvest/api-library');
 const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 
@@ -18,8 +19,11 @@ const {
 
 const { test_config } = require('./cli-options.js');
 
+const passwordPacker = new PasswordPacker(test_config.tenant.password_handling);
+
 const tenancy = new UpvestTenancyAPI(
   test_config.baseURL,
+  passwordPacker,
   test_config.first_apikey.key,
   test_config.first_apikey.secret,
   test_config.first_apikey.passphrase_last_chance_to_see,
@@ -27,6 +31,7 @@ const tenancy = new UpvestTenancyAPI(
 
 const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
   test_config.baseURL,
+  passwordPacker,
   test_config.first_oauth2_client.client_id,
   test_config.first_oauth2_client.client_secret,
   username,
@@ -50,7 +55,11 @@ test('Testing that invalid OAuth2 credentials fail', async function (t) {
 
   const variantsOfMissing = [
     [{username: null,     password: null},     400, 'invalid_request'],
-    [{username: username, password: null},     400, 'invalid_request'],
+
+    // Now that we use salted password hashes, we aren't sending "no" password anymore, but a "wrong" one.
+    // For now, we can not test this combination of missing OAuth2 credentials.
+    // [{username: username, password: null},     400, 'invalid_request'],
+
     [{username: null,     password: password}, 400, 'invalid_request'],
     [{username: username, password: 'wrong'},  401, 'invalid_grant'],
     [{username: 'wrong',  password: password}, 401, 'invalid_grant'],

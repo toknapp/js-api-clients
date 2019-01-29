@@ -4,7 +4,22 @@
     "name": "YOUR_TENANT_NAME",
     "id": 1337,
     "private_key_base64_last_chance_to_see": "SpZaStjZwgpa0QOOXEOIlCZPLhYYhLX+Y+wWeg2P+qc=",
-    "public_key_base64": "biK+4ISWPYLpwsDaF4wl6UXKgxy3I6Xigc82JJf11go="
+    "public_key_base64": "biK+4ISWPYLpwsDaF4wl6UXKgxy3I6Xigc82JJf11go=",
+    "password_handling": {
+      "hash": {
+        "function": "sha512",
+        "params": {
+          "salt_position": "suffix",
+          "salt": "gTkdWPxRgyTQt2LSiovr",
+          "digest_format": "hex"
+        }
+      },
+      "encryption": {
+        "usk": {
+          "pubkey": "xBF7Yec2cFHwm2jhHIPDluqRES9mqUGz9lE7yOw1E1k="
+        }
+      }
+    }
   },
   "first_apikey": {
     "key": "tPKWL9B_yTgfSToOFJmLyg",

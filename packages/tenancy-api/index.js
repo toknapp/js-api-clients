@@ -7,7 +7,8 @@ const { AssetsEndpoint, WalletsEndpoint, TransactionsEndpoint } = require('@upve
 
 
 class UpvestTenancyAPI {
-  constructor(baseURL, key, secret, passphrase, timeout=120000, debug=false) {
+  constructor(baseURL, passwordPacker, key, secret, passphrase, timeout=120000, debug=false) {
+    this.passwordPacker = passwordPacker;
     const tenancyBaseURL = baseURL + 'tenancy/';
     this.client = axios.create({
       baseURL: baseURL,
@@ -39,35 +40,35 @@ class UpvestTenancyAPI {
   }
 
   async echoGet(what) {
-    const data = {echo: what};
-    const response = await this.client.get('tenancy/echo-signed', {params:data});
+    const params = { echo:what };
+    const response = await this.client.get('tenancy/echo-signed', { params });
     return response.data.echo;
   }
 
   get users() {
     if (! this.usersEndpoint) {
-      this.usersEndpoint = new UsersEndpoint(this.client);
+      this.usersEndpoint = new UsersEndpoint(this.client, this.passwordPacker);
     }
     return this.usersEndpoint;
   }
 
   get assets() {
     if (! this.assetsEndpoint) {
-      this.assetsEndpoint = new AssetsEndpoint(this.client);
+      this.assetsEndpoint = new AssetsEndpoint(this.client, this.passwordPacker);
     }
     return this.assetsEndpoint;
   }
 
   get wallets() {
     if (! this.walletsEndpoint) {
-      this.walletsEndpoint = new WalletsEndpoint(this.client);
+      this.walletsEndpoint = new WalletsEndpoint(this.client, this.passwordPacker);
     }
     return this.walletsEndpoint;
   }
 
   get transactions() {
     if (! this.transactionsEndpoint) {
-      this.transactionsEndpoint = new TransactionsEndpoint(this.client);
+      this.transactionsEndpoint = new TransactionsEndpoint(this.client, this.passwordPacker);
     }
     return this.transactionsEndpoint;
   }
@@ -75,12 +76,20 @@ class UpvestTenancyAPI {
 
 
 class UsersEndpoint {
-  constructor(client) {
+  constructor(client, passwordPacker) {
     this.client = client;
+    this.passwordPacker = passwordPacker;
   }
 
   async create(username, password, clientIp, userAgent) {
-    const data = {username, password, client_ip:clientIp, user_agent:userAgent};
+    const { saltedPasswordHash, userSecret } = await this.passwordPacker.pack(password);
+    const data = {
+      username,
+      salted_password_hash: saltedPasswordHash,
+      user_secret: userSecret,
+      client_ip: clientIp,
+      user_agent: userAgent
+    };
     const response = await this.client.post('tenancy/users/', data);
     return response.data;
   }
@@ -134,7 +143,15 @@ class UsersEndpoint {
   }
 
   async updatePassword(username, oldPassword, newPassword) {
-    const data = {old_password:oldPassword, new_password:newPassword};
+    const { saltedPasswordHash:oldSaltedPasswordHash, userSecret:oldUserSecret } = await this.passwordPacker.pack(oldPassword);
+    const { saltedPasswordHash:newSaltedPasswordHash, userSecret:newUserSecret } = await this.passwordPacker.pack(newPassword);
+
+    const data = {
+      old_salted_password_hash: oldSaltedPasswordHash,
+      new_salted_password_hash: newSaltedPasswordHash,
+      old_user_secret: oldUserSecret,
+      new_user_secret: newUserSecret
+    };
     const response = await this.client.patch(`tenancy/users/${username}`, data);
     return response.status == 200;
   }

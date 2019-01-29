@@ -41,9 +41,11 @@
     "tape": "^4.9.1",
     "web3": "^1.0.0-beta.37",
     "webpack": "^4.26.1",
-    "webpack-cli": "^3.1.2"
+    "webpack-cli": "^3.1.2",
+    "libsodium-wrappers": "^0.7.4"
   },
   "dependencies": {
+    "@upvest/api-library": "^0.0.5",
     "@upvest/clientele-api": "^0.0.5",
     "@upvest/tenancy-api": "^0.0.5"
   }

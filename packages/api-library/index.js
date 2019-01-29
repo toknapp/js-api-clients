@@ -1,7 +1,88 @@
+const {
+  getSaltedPasswordHashSHA512,
+  getUserSecretCiphertext,
+} = require('./crypto.js');
+
+// TODO Consider putting this into it's own NPM package.
+class PasswordPacker {
+  constructor(config) {
+    this.config = config;
+  }
+
+  async hash(password) {
+    // this.config.hash == {
+    //   "function": "sha512",
+    //   "params": {
+    //     "salt_position": "suffix",
+    //     "salt": "gTkdWPxRgyTQt2LSiovr",
+    //     "digest_format": "hex"
+    //   }
+    // }
+    let saltedPasswordHash;
+    if ('sha512' == this.config.hash.function) {
+      return await getSaltedPasswordHashSHA512(
+        password,
+        this.config.hash.params.salt,
+        this.config.hash.params.salt_position,
+        this.config.hash.params.digest_format,
+      );
+    }
+    throw Error('Unsupported password hashing configuration.')
+  }
+
+  async encrypt(password) {
+    // this.config.encryption == {
+    //   "usk": {
+    //     "pubkey": "xBF7Yec2cFHwm2jhHIPDluqRES9mqUGz9lE7yOw1E1k="
+    //   }
+    // }
+    return {
+      usk: this.config.encryption.usk,
+      ciphertext: await getUserSecretCiphertext(password, this.config.encryption.usk.pubkey),
+    };
+  }
+
+  async pack(password) {
+    return {
+      saltedPasswordHash: await this.hash(password),
+      userSecret: await this.encrypt(password)
+    };
+  }
+}
+
+
+class AsyncClientWrapper {
+  constructor(asyncClientGetter) {
+    this.asyncClientGetter = asyncClientGetter;
+    for (const method of this.default_methods) {
+      this[method] = async function(...params) {
+        return await (await this.asyncClientGetter())[method](...params);
+      }
+    }
+  }
+
+  get default_methods() {
+    return [
+      'delete',
+      'get',
+      'head',
+      'options',
+      'patch',
+      'post',
+      'put',
+    ]
+  }
+
+  // async get(...params) {
+  //   return await (await this.asyncClientGetter()).get(...params);
+  // }
+}
+
 
 class AssetsEndpoint {
-  constructor(client) {
+  constructor(client, passwordPacker) {
     this.client = client;
+    this.passwordPacker = passwordPacker;
   }
 
   async* list(pageSize) {
@@ -55,14 +136,16 @@ class AssetsEndpoint {
 
 
 class WalletsEndpoint {
-  constructor(client) {
+  constructor(client, passwordPacker) {
     this.client = client;
+    this.passwordPacker = passwordPacker;
   }
 
   async create(assetId, password) {
+    const userSecret = await this.passwordPacker.encrypt(password);
     const data = {
       asset_id: assetId,
-      password: password
+      user_secret: userSecret
     };
     const response = await this.client.post('kms/wallets/', data);
     return response.data;
@@ -119,18 +202,20 @@ class WalletsEndpoint {
 
 
 class TransactionsEndpoint {
-  constructor(client) {
+  constructor(client, passwordPacker) {
     this.client = client;
+    this.passwordPacker = passwordPacker;
   }
 
   async create(walletId, password, recipient, symbol, quantity, fee) {
+    const userSecret = await this.passwordPacker.encrypt(password);
     const data = {
-      wallet_id:walletId,
-      password,
+      wallet_id: walletId,
+      user_secret: userSecret,
       recipient,
       symbol,
-      quantity:String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
-      fee:String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
+      quantity: String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
+      fee: String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
     };
     const response = await this.client.post('tx/', data);
     return response.data;
@@ -139,6 +224,8 @@ class TransactionsEndpoint {
 
 
 module.exports = {
+  AsyncClientWrapper,
+  PasswordPacker,
   AssetsEndpoint,
   WalletsEndpoint,
   TransactionsEndpoint

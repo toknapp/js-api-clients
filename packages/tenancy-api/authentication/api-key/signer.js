@@ -34,6 +34,7 @@ class Signer {
   }
 
   sign(messageParts) {
+    // TODO Consider using https://download.libsodium.org/doc/advanced/hmac-sha2 to have the same API in the browser and in Node.js
     const hmac = crypto.createHmac('sha512', this.secret);
     for (const {name, normalize} of messagePartsConfig) {
       hmac.update(normalize(messageParts[name]));
