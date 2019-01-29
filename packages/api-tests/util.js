@@ -88,17 +88,32 @@ const tCreateUser = async (t, tenancy) => {
 };
 
 const tEcho = async (t, api) => {
-  const ECHO = 'Hi there!';
-  let result;
+  const shouts = [
+    'Hello',
+    'Hello, world!',
+    'Ωμέγα',
+    'ǈiljana',
+    '陳大文',
+  ];
+  for (const shout of shouts) {
+    let echoPost;
+    try {
+      echoPost = await api.echo(shout);
+    }
+    catch (error) {
+      return tErrorFail(t, error, 'Failed to call echo endpoint. (Or, if this was run via OAuth2, it might also mean that obtaining the OAuth2 token failed.)');
+    }
+    t.equal(echoPost, shout, `Actual and expected echo are equal (POST "${shout}")`);
 
-  try {
-    result = await api.echo(ECHO);
+    let echoGet;
+    try {
+      echoGet = await api.echoGet(shout);
+    }
+    catch (error) {
+      return tErrorFail(t, error, 'Failed to call echo endpoint. (Or, if this was run via OAuth2, it might also mean that obtaining the OAuth2 token failed.)');
+    }
+    t.equal(echoGet, shout, `Actual and expected echo are equal (GET "${shout}")`);
   }
-  catch (error) {
-    return tErrorFail(t, error, 'Either obtaining the OAuth2 token or calling the echo endpoint failed.');
-  }
-
-  t.equal(result, ECHO, 'Actual and expected OAuth2 echo are equal');
   return true;
 };
 

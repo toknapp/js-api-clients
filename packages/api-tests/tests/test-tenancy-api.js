@@ -33,10 +33,8 @@ const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
   password
 );
 
-test('Testing echo endpoint', async function (t) {
-  const echo = await tenancy.echo('hello');
-  // console.dir(echo, {depth:null, colors:true});
-  t.equal(echo, 'hello', 'actual and expected echo are equal');
+test('Testing tenancy echo endpoint', async function (t) {
+  tEcho(t, tenancy);
   t.end();
 });
 

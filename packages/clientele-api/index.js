@@ -40,6 +40,12 @@ class UpvestClienteleAPI {
     return response.data.echo;
   }
 
+  async echoGet(what) {
+    const data = {echo: what};
+    const response = await this.client.get('clientele/echo-oauth2', {params:data});
+    return response.data.echo;
+  }
+
   get assets() {
     if (! this.assetsEndpoint) {
       this.assetsEndpoint = new AssetsEndpoint(this.client);

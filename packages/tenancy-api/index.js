@@ -38,6 +38,12 @@ class UpvestTenancyAPI {
     return response.data.echo;
   }
 
+  async echoGet(what) {
+    const data = {echo: what};
+    const response = await this.client.get('tenancy/echo-signed', {params:data});
+    return response.data.echo;
+  }
+
   get users() {
     if (! this.usersEndpoint) {
       this.usersEndpoint = new UsersEndpoint(this.client);
