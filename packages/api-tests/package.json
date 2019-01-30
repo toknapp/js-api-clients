@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@upvest/api-tests",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Combined tests for the Upvest Tenancy API and the Upvest Clientele API",
   "scripts": {
     "test": "tape 'tests/**/test*.js'",
@@ -44,7 +44,7 @@
     "webpack-cli": "^3.1.2"
   },
   "dependencies": {
-    "@upvest/clientele-api": "^0.0.5",
-    "@upvest/tenancy-api": "^0.0.5"
+    "@upvest/clientele-api": "^0.0.6",
+    "@upvest/tenancy-api": "^0.0.6"
   }
 }
