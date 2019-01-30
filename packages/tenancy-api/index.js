@@ -8,7 +8,6 @@ const { AssetsEndpoint, WalletsEndpoint, TransactionsEndpoint } = require('@upve
 
 class UpvestTenancyAPI {
   constructor(baseURL, key, secret, passphrase, timeout=120000, debug=false) {
-    const tenancyBaseURL = baseURL + 'tenancy/';
     this.client = axios.create({
       baseURL: baseURL,
       timeout: timeout || 120000,

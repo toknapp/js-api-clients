@@ -1,6 +1,6 @@
-const { canonicalizeQueryParams } = require('./canonical-query-parameters.js');
 const { Signer } = require('./signer.js');
 const { isObject } = require('./util.js');
+const buildURL = require('axios/lib/helpers/buildURL.js');
 
 
 class APIKeyAxiosInterceptor {
@@ -44,13 +44,23 @@ class APIKeyAxiosInterceptor {
     return config;
   }
 
+  getSignedPathFromAxiosConfig(config) {
+    // Arrive at the same parameter serialization as Axios.
+    const axiosUrl = buildURL(config.url, config.params, config.paramsSerializer);
+
+    // @see https://developer.mozilla.org/en-US/docs/Web/API/URL
+    // @see https://url.spec.whatwg.org/#api
+    const whatwgUrl = new URL(axiosUrl);
+    return whatwgUrl.pathname + whatwgUrl.search;
+  }
+
   addAPIKeyHeadersAndSignatureToConfig(config) {
     const timestamp = "" + Math.floor(Date.now() / 1000);
+    const signedPath = this.getSignedPathFromAxiosConfig(config);
     const messageParts = {
-      timestamp: timestamp,
+      timestamp,
       method: config.method,
-      url: config.url,
-      queryParams: config.params,
+      signedPath,
       body: config.data,
     };
     const signature = this.signer.sign(messageParts);
@@ -59,6 +69,7 @@ class APIKeyAxiosInterceptor {
     config.headers['X-UP-API-Key'] = this.key;
     config.headers['X-UP-API-Passphrase'] = this.passphrase;
     config.headers['X-UP-API-Timestamp'] = timestamp;
+    config.headers['X-UP-API-Signed-Path'] = signedPath;
     config.headers['X-UP-API-Signature'] = signature;
 
     return config;

@@ -1,7 +1,3 @@
-const { canonicalizeQueryParams } = require('./canonical-query-parameters.js');
-const { Signer } = require('./signer.js');
-const { isObject } = require('./util.js');
-
 
 class APIKeyDebugger {
   constructor(interceptor) {
@@ -13,8 +9,7 @@ class APIKeyDebugger {
     const messageParts = {
       timestamp: config.headers['X-UP-API-Timestamp'],
       method: config.method,
-      url: config.url,
-      queryParams: config.params,
+      signedPath: this.interceptor.getSignedPathFromAxiosConfig(config),
       body: config.data,
     };
     config.signatureDebugInfo = this.interceptor.signer.getDebugInfo(messageParts);
@@ -25,8 +20,7 @@ class APIKeyDebugger {
     const toServerMessagePartName = {
       timestamp: 'timestamp',
       method: 'method',
-      url: 'path',
-      queryParams: 'query_params',
+      signedPath: 'signed_path',
       body: 'body',
     }
     for (const [messagePartName, debugInfo] of Object.entries(signatureDebugInfo)) {
