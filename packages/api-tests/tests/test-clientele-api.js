@@ -235,7 +235,7 @@ test('Testing transactions.create()', async function (t) {
         wallet.id,
         password,
         recipient=faucetConfig.holder.address,
-        symbol=faucetConfig.erc20.symbol,
+        assetId=faucetConfig.erc20.assetId,
         quantity=faucetConfig.erc20.amount,
         fee=(faucetConfig.gasPrice * faucetConfig.erc20.gasLimit)
       );

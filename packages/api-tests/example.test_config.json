@@ -27,7 +27,8 @@
         "contract": "0x89abcdef0123456789abcdef0123456789abcdef",
         "gasLimit": 100000,
         "amount": 17,
-        "symbol": "COIN"
+        "symbol": "COIN",
+        "assetId": "cfc59efb-3b21-5340-ae96-8cadb4ce31a8"
       },
       "confirmationThreshold": 4,
       "gasPrice": 3.5e9

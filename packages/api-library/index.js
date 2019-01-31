@@ -123,12 +123,12 @@ class TransactionsEndpoint {
     this.client = client;
   }
 
-  async create(walletId, password, recipient, symbol, quantity, fee) {
+  async create(walletId, password, recipient, assetId, quantity, fee) {
     const data = {
       wallet_id:walletId,
       password,
       recipient,
-      symbol,
+      asset_id:assetId,
       quantity:String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
       fee:String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
     };
