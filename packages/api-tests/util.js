@@ -91,6 +91,7 @@ const tEcho = async (t, api) => {
   const shouts = [
     'Hello',
     'Hello, world!',
+    'Hello, world & peace = mindfulness!',
     'Ωμέγα',
     'ǈiljana',
     '陳大文',
@@ -134,7 +135,7 @@ const tCreateWallets = async (t, api, assetIds, password) => {
     for (const balance of wallet.balances) {
       createdAssetIds.push(balance.asset_id);
     }
-    t.ok(-1 !== createdAssetIds.indexOf(assetId), 'Created wallet contains balance for reqested asset.');
+    t.ok(-1 !== createdAssetIds.indexOf(assetId), 'Created wallet contains balance for requested asset.');
     createdWallets.push(wallet);
   }
   return createdWallets;
