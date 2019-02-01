@@ -9,36 +9,14 @@ const {
   TENANCY_API_KEY: { secret }
 } = require("./config");
 
-const normalizationForMessageParts = {
-  timestamp: timestamp => bufferFrom(timestamp),
-  method: method => bufferFrom(method),
-  path: path => bufferFrom(path),
-  queryParams: queryParams => normalizeQueryParams(queryParams),
-  body: body => bufferFrom(body)
-};
+const ALGORITHM = "sha512";
+const ENCODING = "hex";
 
-function bufferFrom(string) {
-  const encoding = "utf-8";
+function generateSignature(message) {
+  const hmac = crypto.createHmac(ALGORITHM, secret);
+  hmac.update(message);
 
-  return Buffer.from(string, encoding);
-}
-
-function normalizeQueryParams(queryParams) {
-  return queryParams;
-}
-
-function generateSignature(messageParts) {
-  const algorithm = "sha512";
-  const hmac = crypto.createHmac(algorithm, secret);
-
-  const messageKeys = Object.keys(messageParts);
-  for (const key of messageKeys) {
-    hmac.update(normalizationForMessageParts[key](messageParts[key]));
-  }
-
-  const encoding = "hex";
-
-  return hmac.digest(encoding);
+  return hmac.digest(ENCODING);
 }
 
 exports.generateSignature = generateSignature;

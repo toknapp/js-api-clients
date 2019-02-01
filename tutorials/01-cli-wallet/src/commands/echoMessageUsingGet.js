@@ -19,20 +19,16 @@ async function echoMessageUsingGet(message) {
   const timestamp = generateTimestamp();
   // Assign stringified message body.
   const messageBody = "";
-  // Assign stringified query parameters
-  const queryParams = `echo=${message}`;
-  // Assemble message parts object to be signed.
-  const messageParts = {
-    timestamp,
-    method: REQUEST_METHOD,
-    path: LIST_USERS_PATH,
-    queryParams,
-    body: messageBody
-  };
+  // Assign URI encoded query parameters.
+  const queryParams = `echo=${encodeURIComponent(message)}`;
+  // Assemble path with query parameters.
+  const path = `${LIST_USERS_PATH}?${queryParams}`;
+  // Concatenate pre-hashed message string.
+  const preHashedMessage = `${timestamp}${REQUEST_METHOD}${path}${messageBody}`;
   // Generate signature from the message parts object.
-  const signature = generateSignature(messageParts);
+  const signature = generateSignature(preHashedMessage);
   // Generate the request headers list.
-  const headers = generateMessageHeaders({ timestamp, signature });
+  const headers = generateMessageHeaders({ timestamp, signature, path });
   // Assemble configuration for axios.
   const axiosConfig = {
     method: REQUEST_METHOD,
