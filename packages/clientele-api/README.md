@@ -13,7 +13,7 @@ const exampleUsername = 'Example User';
 const examplePassword = 'ex@mp1e p@55w0rd';
 
 const config = {
-  "baseURL": "https://api.eu.upvest.co/1.0/",
+  "baseURL": "https://api-playground.eu.upvest.co/1.0/",
   "apikey": {
     "key": "tPKWL9B_yTgfSToOFJmLyg",
     "secret": "9O7tLb1ub6qLHZQ00ButDOcfvw9g7Gn8GzFB4WmsUrA",

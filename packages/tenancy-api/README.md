@@ -12,7 +12,7 @@ Here is an example how to use it in Node.js:
 const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 
 const config = {
-  "baseURL": "https://api.eu.upvest.co/1.0/",
+  "baseURL": "https://api-playground.eu.upvest.co/1.0/",
   "apikey": {
     "key": "tPKWL9B_yTgfSToOFJmLyg",
     "secret": "9O7tLb1ub6qLHZQ00ButDOcfvw9g7Gn8GzFB4WmsUrA",
