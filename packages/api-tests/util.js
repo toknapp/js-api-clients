@@ -68,17 +68,17 @@ const tGetCachedOrCreateUser = async (t, tenancy) => {
   return tenancy._cachedUser;
 };
 
-const tCreateUser = async (t, tenancy) => {
+const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds) => {
   t.comment('Create user.')
   const username = cryptoRandomString(10);
   const password = cryptoRandomString(10);
   let user;
   try {
-    user = await tenancy.users.create(username, password);
+    user = await tenancy.users.create(username, password, clientIp, userAgent, assetIds);
   }
   catch (error) {
     tErrorFail(t, error, 'Creating the user failed.');
-    return { username:null, password:null, recoverykit:null };
+    return { username:null, password:null, recoverykit:null, wallet_ids:null };
   }
 
   t.equal(user.username, username, 'Actual and expected username are equal');

@@ -39,8 +39,45 @@ test('Testing tenancy echo endpoint', async function (t) {
 });
 
 test('Testing users.create()', async function (t) {
-  const { username, password, recoverykit } = await tCreateUser(t, tenancy);
+  const user = await tCreateUser(t, tenancy);
+  if (! user.username) return;
+
+  const isRecoveryKitValidXml = (xmlParser.validate(user.recoverykit) === true);
+  t.ok(isRecoveryKitValidXml, 'Recovery Kit is valid XML');
+  if (isRecoveryKitValidXml) {
+    let jsonObj;
+    try {
+      jsonObj = xmlParser.parse(user.recoverykit, {ignoreAttributes:false});
+      t.ok('svg' in jsonObj, 'Recovery Kit SVG has <svg> root element.');
+      t.ok('path' in jsonObj['svg'], 'SVG has <path> element.');
+      t.ok('@_d' in jsonObj['svg']['path'], 'SVG <path> element has "d" attribute.');
+      t.ok('@_id' in jsonObj['svg']['path'], 'SVG <path> element has "id" attribute.');
+      t.equal(jsonObj['svg']['path']['@_id'], 'qr-path', '"id" attribute is "qr-path"');
+    }
+    catch (parseError) {
+      return tErrorFail(t, parseError, 'Parsing the SVG as XML failed.');
+    }
+    // console.dir(jsonObj, {depth:null, colors:true});
+  }
+
+  t.notOk(user.wallet_ids, 'No wallet IDs for newly created user because no asset IDs requested.');
+
+  t.end();
+});
+
+test('Testing users.create() with wallet creation', async function (t) {
+  const clientIp = '127.0.0.1';
+  const userAgent = 'Upvest JS API client test script';
+  const assetIds = [
+    '51bfa4b5-6499-5fe2-998b-5fb3c9403ac7',  // Arweave (internal testnet)
+    'a3c18f74-935e-5d75-bd3c-ce0fb5464414',  // Bitcoin (testnet)
+    'deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f',  // Ethereum (ropsten)
+    'cfc59efb-3b21-5340-ae96-8cadb4ce31a8',  // "COIN" Example ERC20 token
+  ];
+  const { username, password, recoverykit, wallet_ids } = await tCreateUser(t, tenancy, clientIp, userAgent, assetIds);
   if (! username) return;
+
+  t.equal(wallet_ids.length, assetIds.length - 1, 'Number of wallets created is one less than number of requested assets because ETH and ERC20 get combined in 1 wallet.');
 
   const isRecoveryKitValidXml = (xmlParser.validate(recoverykit) === true);
   t.ok(isRecoveryKitValidXml, 'Recovery Kit is valid XML');

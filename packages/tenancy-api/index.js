@@ -78,8 +78,8 @@ class UsersEndpoint {
     this.client = client;
   }
 
-  async create(username, password, clientIp, userAgent) {
-    const data = {username, password, client_ip:clientIp, user_agent:userAgent};
+  async create(username, password, clientIp, userAgent, assetIds) {
+    const data = {username, password, client_ip:clientIp, user_agent:userAgent, asset_ids:assetIds};
     const response = await this.client.post('tenancy/users/', data);
     return response.data;
   }
