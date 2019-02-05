@@ -99,7 +99,7 @@ test('Testing assets.list() and assets.retrieve()', async function (t) {
     //   name: 'Ethereum (ropsten)',
     //   symbol: 'ETH',
     //   exponent: 18,
-    //   protocol: 'co.upvest.kinds.Ethereum' }
+    //   protocol: 'ethereum_ropsten' }
 
     t.equal(asset.id, retrievedAsset.id, 'listed and retrieved asset.id are equal');
     t.ok(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(asset.id), 'asset.id matches UUID pattern');
@@ -111,7 +111,7 @@ test('Testing assets.list() and assets.retrieve()', async function (t) {
     t.equal(typeof asset.exponent, 'number', 'asset.exponent is a number');
 
     t.equal(asset.protocol, retrievedAsset.protocol, 'listed and retrieved asset.protocol are equal');
-    t.ok(asset.protocol.startsWith('co.upvest.kinds.'), 'asset.protocol starts with "co.upvest.kinds."');
+    t.notOk(asset.protocol.startsWith('co.upvest.kinds.'), 'asset.protocol does not start with "co.upvest.kinds."');
   }
 
   t.end();
@@ -153,7 +153,7 @@ test('Testing wallets.create(), wallets.list() and wallets.retrieve()', async fu
     //   address: '0x5eD17929FD017F98479c95A26ba1AA03bcF4628F',
     //   balances:
     //    [ { amount: '0', name: 'Ethereum', symbol: 'ETH', exponent: 18 } ],
-    //   protocol: 'co.upvest.kinds.Ethereum',
+    //   protocol: 'erc20_ropsten',
     //   status: 'ACTIVE' }
 
     t.equal(wallet.id, retrievedWallet.id, 'listed and retrieved wallet.id are equal');
@@ -170,7 +170,7 @@ test('Testing wallets.create(), wallets.list() and wallets.retrieve()', async fu
     });
 
     t.equal(wallet.protocol, retrievedWallet.protocol, 'listed and retrieved wallet.protocol are equal');
-    t.ok(wallet.protocol.startsWith('co.upvest.kinds.'), 'wallet.protocol starts with "co.upvest.kinds."');
+    t.notOk(wallet.protocol.startsWith('co.upvest.kinds.'), 'wallet.protocol does not start with "co.upvest.kinds."');
 
     t.equal(wallet.address, retrievedWallet.address, 'listed and retrieved wallet.address are equal');
 
@@ -204,7 +204,7 @@ test('Testing transactions.create()', async function (t) {
   t.comment('Test listing all wallets of one user, and generating a transaction for those wallets which are Ethereum or Erc20 wallets.')
   for await (const wallet of clientele.wallets.list()) {
     // Only test Tx creation for ETH.
-    if (-1 === ['co.upvest.kinds.Ethereum', 'co.upvest.kinds.Erc20'].indexOf(wallet.protocol)) {
+    if (-1 === ['ethereum_ropsten', 'erc20_ropsten'].indexOf(wallet.protocol)) {
       continue;
     }
 

@@ -245,7 +245,7 @@ test('Testing wallets.list() and wallets.retrieve()', async function (t) {
     });
 
     t.equal(wallet.protocol, retrievedWallet.protocol, 'listed and retrieved wallet.protocol are equal');
-    t.ok(wallet.protocol.startsWith('co.upvest.kinds.'), 'wallet.protocol starts with "co.upvest.kinds."');
+    t.notOk(wallet.protocol.startsWith('co.upvest.kinds.'), 'wallet.protocol does not start with "co.upvest.kinds."');
 
     t.equal(wallet.address, retrievedWallet.address, 'listed and retrieved wallet.address are equal');
 
