@@ -23,28 +23,32 @@ function setEqual(setA, setB) {
 
 const inspect = (...things) => things.forEach(thing => console.dir(thing, {depth:null, colors:true}));
 
+const inspectResponse = response => {
+  const isTextResponse = ('string' == typeof response.data);
+  const summary = {
+    request: {
+      method: response.config.method,
+      url: response.config.url,
+      queryParams: response.config.params,
+      headers: response.config.headers,
+      jsonBody: response.config.data,
+    },
+    response: {
+      status: response.status,
+      reason: response.statusText,
+      headers: response.headers,
+      jsonBody: isTextResponse ? '[see printed response text below]' : response.data,
+    },
+  }
+  inspect(summary);
+  if (isTextResponse) {
+    console.log(response.data);
+  }
+};
+
 const inspectError = error => {
   if (error.response) {
-    const isTextResponse = ('string' == typeof error.response.data);
-    const summary = {
-      request: {
-        method: error.response.config.method,
-        url: error.response.config.url,
-        queryParams: error.response.config.params,
-        headers: error.response.config.headers,
-        jsonBody: error.response.config.data,
-      },
-      response: {
-        status: error.response.status,
-        reason: error.response.statusText,
-        headers: error.response.headers,
-        jsonBody: isTextResponse ? '[see printed response text below]' : error.response.data,
-      },
-    }
-    inspect(summary);
-    if (isTextResponse) {
-      console.log(error.response.data);
-    }
+    inspectResponse(error.response);
   }
   else {
     inspect(error);
@@ -191,7 +195,7 @@ function readlineQuestionPromise(prompt) {
 
 
 module.exports = {
-  setDifference, setEqual, inspect, inspectError,
+  setDifference, setEqual, inspect, inspectResponse, inspectError,
   tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho,
   tCreateWallets, tWaitForWalletActivation,
   readlineQuestionPromise

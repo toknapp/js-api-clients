@@ -96,7 +96,7 @@ test('Testing assets.list() and assets.retrieve()', async function (t) {
     // inspect(retrievedAsset);
 
     // { id: 'deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f',
-    //   name: 'Ethereum (ropsten)',
+    //   name: 'Ether (ropsten)',
     //   symbol: 'ETH',
     //   exponent: 18,
     //   protocol: 'ethereum_ropsten' }
@@ -218,7 +218,7 @@ test('Testing transactions.create()', async function (t) {
       inspect('User credentials, in case the faucetting and/or test Tx fails:', {username, password});
       t.comment('Create faucet.');
       const faucet = new EthereumAndErc20Faucet(faucetConfig);
-      t.comment('Faucet some ETH and some some ERC20 tokens to the new wallet.');
+      t.comment(`Faucet ${faucetConfig.ethEnabled?'some ETH and ':''}some ERC20 tokens to the new wallet.`);
       const faucetResults = await faucet.run(wallet.address, faucetConfig.gasPrice * faucetConfig.erc20.gasLimit, faucetConfig.erc20.amount, t.comment);
       inspect('faucetResults ==', faucetResults);
       faucet.disconnect();

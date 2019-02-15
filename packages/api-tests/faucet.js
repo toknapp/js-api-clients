@@ -88,6 +88,10 @@ class EthereumAndErc20Faucet {
     this.web3 = web3Pool.getWeb3(this.config.infuraProjectId, this.config.netName);
   }
 
+  async getInitialNonce() {
+    return toBN(await this.web3.eth.getTransactionCount(this.config.holder.address));
+  }
+
   async signAndSend(tx, logger) {
     if (! logger) logger = msg => undefined;
     const key = ensureHexPrefix(this.config.holder.key);
@@ -130,12 +134,22 @@ class EthereumAndErc20Faucet {
   async run(recipient, ethAmount, erc20Amount, logger) {
     if (! logger) logger = msg => undefined;
 
-    const initialNonce = toBN(await this.web3.eth.getTransactionCount(this.config.holder.address));
+    const initialNonce = await this.getInitialNonce();
 
-    return await Promise.all([
-      this.faucetEth(recipient, ethAmount, initialNonce, msg => logger(`ETH faucet: ${msg}`)),
-      this.faucetErc20(recipient, erc20Amount, initialNonce.add(toBN(1)), msg => logger(`ERC20 faucet: ${msg}`))
-    ]);
+    let faucets;
+    if (this.config.ethEnabled) {
+      faucets = [
+        this.faucetEth(recipient, ethAmount, initialNonce, msg => logger(`ETH faucet: ${msg}`)),
+        this.faucetErc20(recipient, erc20Amount, initialNonce.add(toBN(1)), msg => logger(`ERC20 faucet: ${msg}`))
+      ];
+    }
+    else {
+      faucets = [
+        this.faucetErc20(recipient, erc20Amount, initialNonce, msg => logger(`ERC20 faucet: ${msg}`))
+      ];
+    }
+
+    return await Promise.all(faucets);
   }
 
   // Without disconnecting, the web socket connection will keep the Node.js process running beyond test completion.

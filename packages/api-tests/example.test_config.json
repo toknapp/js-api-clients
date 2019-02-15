@@ -23,6 +23,7 @@
         "address": "0x0123456789abcdef0123456789abcdef01234567",
         "key": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
       },
+      "ethEnabled": false,
       "erc20": {
         "contract": "0x89abcdef0123456789abcdef0123456789abcdef",
         "gasLimit": 100000,

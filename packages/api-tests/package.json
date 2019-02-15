@@ -30,7 +30,9 @@
     "url": "https://github.com/toknapp/js-api-clients/issues"
   },
   "homepage": "https://github.com/toknapp/js-api-clients#readme",
-  "devDependencies": {
+  "dependencies": {
+    "@upvest/clientele-api": "^0.0.7",
+    "@upvest/tenancy-api": "^0.0.7",
     "clean-webpack-plugin": "^1.0.0",
     "commander": "^2.19.0",
     "crypto-random-string": "^1.0.0",
@@ -42,9 +44,5 @@
     "web3": "^1.0.0-beta.37",
     "webpack": "^4.26.1",
     "webpack-cli": "^3.1.2"
-  },
-  "dependencies": {
-    "@upvest/clientele-api": "^0.0.7",
-    "@upvest/tenancy-api": "^0.0.7"
   }
 }

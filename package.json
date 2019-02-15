@@ -34,7 +34,7 @@
     "url": "https://github.com/toknapp/js-api-clients/issues"
   },
   "homepage": "https://github.com/toknapp/js-api-clients#readme",
-  "devDependencies": {
+  "dependencies": {
     "lerna": "^3.5.0"
   }
 }
