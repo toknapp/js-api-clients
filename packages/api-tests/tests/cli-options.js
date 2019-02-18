@@ -1,12 +1,11 @@
-const { cwd } = require('process');
-const { join } = require('path');
+const { resolve } = require('path');
 const program = require('commander');
 
 program
   .option('-c, --config [type]', 'Use the specified configuration file [.test_config.json]', '.test_config.json')
   .parse(process.argv);
 
-const configFilePath = join(cwd(), program.config)
+const configFilePath = resolve(program.config);
 
 console.log('Using the "%s" config file', configFilePath);
 
