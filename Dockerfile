@@ -18,7 +18,7 @@ FROM node:10.15.1-alpine
 #FROM archlinux/base
 #FROM alpine
 
-WORKDIR js-api-clients
+WORKDIR js-api-client
 
 #RUN apt-get update && yes | apt-get install apt-utils && yes |  apt-get upgrade &&  yes | apt-get install libstdc++6 build-essential npm yarn
 #RUN  pacman -Sy && yes | pacman -S yarn npm cronie

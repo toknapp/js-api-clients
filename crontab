@@ -1,1 +1,2 @@
-* * * * * yarn --cwd /js-api-clients tape packages/api-tests/tests/**.js > /dev/stdout
+* * * * * yarn --cwd /js-api-client tape /packages/api-tests/tests/**.js -c creds/.test_config.json > /dev/stdout
+
