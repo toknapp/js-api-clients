@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: platitude-api-test 
+  labels:
+    app: platitude-api-test 
+  namespace: unstable
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: platitude-api-test
+  template:
+    metadata:
+      labels:
+        app: platitude-api-test
+      namespace: unstable
+    spec:
+      containers:
+      - name: platitude-api-test
+        image: eu.gcr.io/tokn-177316/platitude-api-test:stable
+        volumeMounts:
+        - name: platitude-testing-credentials 
+          mountPath: "/js-api-client/creds"
+      volumes:
+      - name: platitude-testing-credentials
+        secret:
+          secretName: platitude-testing-credentials
+
