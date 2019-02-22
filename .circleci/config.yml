@@ -1,0 +1,23 @@
+version: 2
+
+filter-unstable: &filter-unstable
+  filters:
+    branches:
+      only: unstable
+
+jobs:
+  test:
+    docker:
+      - image: circleci/node:10.15.1-jessie-browsers-legacy
+    steps:
+      - checkout
+      - run: echo $PLAT_CREDS | base64 --decode --ignore-garbage > ${HOME}/packages/api-tests/.test_config.json
+      - run: yarn --cwd ${HOME}/packages/api-tests test
+
+workflows:
+  version: 2
+
+  unstable:
+    jobs:
+      - test
+        <<: *filter-unstable
