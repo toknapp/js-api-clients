@@ -11,13 +11,14 @@ jobs:
       - image: circleci/node:10.15.1-jessie-browsers-legacy
     steps:
       - checkout
-      - run: echo $PLAT_CREDS | base64 --decode --ignore-garbage > ${HOME}/packages/api-tests/.test_config.json
-      - run: yarn --cwd ${HOME}/packages/api-tests test
+      - run: echo $PLAT_CREDS | base64 --decode --ignore-garbage > ./packages/api-tests/.test_config.json
+      - run: yarn --cwd ./packages/api-tests   
+      - run: yarn --cwd ./packages/api-tests test
 
 workflows:
   version: 2
 
   unstable:
     jobs:
-      - test
-        <<: *filter-unstable
+      - test:
+          <<: *filter-unstable
