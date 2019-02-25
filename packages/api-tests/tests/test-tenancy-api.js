@@ -16,7 +16,7 @@ const {
   tCreateWallets, tWaitForWalletActivation, readlineQuestionPromise,
 } = require('../util.js');
 
-const { test_config } = require('./cli-options.js');
+const { test_config } = require('../cli-options.js');
 
 const tenancy = new UpvestTenancyAPI(
   test_config.baseURL,
