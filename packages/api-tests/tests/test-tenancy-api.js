@@ -69,10 +69,10 @@ test('Testing users.create() with wallet creation', async function (t) {
   const clientIp = '127.0.0.1';
   const userAgent = 'Upvest JS API client test script';
   const assetIds = [
-    '51bfa4b5-6499-5fe2-998b-5fb3c9403ac7',  // Arweave (internal testnet)
-    'a3c18f74-935e-5d75-bd3c-ce0fb5464414',  // Bitcoin (testnet)
-    'deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f',  // Ethereum (ropsten)
-    'cfc59efb-3b21-5340-ae96-8cadb4ce31a8',  // "COIN" Example ERC20 token
+    test_config.assetIds.Arweave,
+    test_config.assetIds.Bitcoin,
+    test_config.assetIds.Ether,
+    test_config.assetIds.ExampleERC20,
   ];
   const { username, password, recoverykit, wallet_ids } = await tCreateUser(t, tenancy, clientIp, userAgent, assetIds);
   if (! username) return;
@@ -228,7 +228,7 @@ test('Testing wallets.list() and wallets.retrieve()', async function (t) {
     //   address: '0x5eD17929FD017F98479c95A26ba1AA03bcF4628F',
     //   balances:
     //    [ { amount: '0', name: 'Ethereum', symbol: 'ETH', exponent: 18 } ],
-    //   protocol: 'co.upvest.kinds.Ethereum',
+    //   protocol: 'ethereum',
     //   status: 'ACTIVE' }
 
     t.equal(wallet.id, retrievedWallet.id, 'listed and retrieved wallet.id are equal');
@@ -272,12 +272,6 @@ test('Testing assets.list() and assets.retrieve()', async function (t) {
     }
     // t.comment('Inspecting retrieved asset:');
     // inspect(retrievedAsset);
-
-    // { id: 'deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f',
-    //   name: 'Ether (ropsten)',
-    //   symbol: 'ETH',
-    //   exponent: 18,
-    //   protocol: 'ethereum_ropsten' }
 
     t.equal(asset.id, retrievedAsset.id, 'listed and retrieved asset.id are equal');
     t.ok(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(asset.id), 'asset.id matches UUID pattern');

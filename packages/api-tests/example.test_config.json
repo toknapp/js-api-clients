@@ -15,6 +15,12 @@
     "client_id": "j3sH4R1htxgTkdWPxRgyTQt2LSiovrKuziHAc8aJ",
     "client_secret": "6hYU72rsW3VTl94hBqokzYZSuh5jaKLwjTYLouEhl7ndurkqn78lFYzeteU6kCHLzfZblT5WTf4p7R4VS9lR7vHne0Xm09DBolCG693Cp5qlwL7CHnUDAovjYPWxKP3z"
   },
+  "assetIds": {
+    "Arweave": "51bfa4b5-6499-5fe2-998b-5fb3c9403ac7",
+    "Bitcoin": "a3c18f74-935e-5d75-bd3c-ce0fb5464414",
+    "Ether": "deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f",
+    "ExampleERC20": "cfc59efb-3b21-5340-ae96-8cadb4ce31a8"
+  },
   "faucet": {
     "ethereum": {
       "netName": "ropsten",

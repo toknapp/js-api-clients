@@ -95,12 +95,6 @@ test('Testing assets.list() and assets.retrieve()', async function (t) {
     // t.comment('Inspecting retrieved asset:');
     // inspect(retrievedAsset);
 
-    // { id: 'deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f',
-    //   name: 'Ether (ropsten)',
-    //   symbol: 'ETH',
-    //   exponent: 18,
-    //   protocol: 'ethereum_ropsten' }
-
     t.equal(asset.id, retrievedAsset.id, 'listed and retrieved asset.id are equal');
     t.ok(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(asset.id), 'asset.id matches UUID pattern');
 
@@ -125,10 +119,10 @@ test('Testing wallets.create(), wallets.list() and wallets.retrieve()', async fu
   const clientele = getClienteleAPI(username, password);
 
   const assetIds = [
-    '51bfa4b5-6499-5fe2-998b-5fb3c9403ac7',  // Arweave (internal testnet)
-    'a3c18f74-935e-5d75-bd3c-ce0fb5464414',  // Bitcoin (testnet)
-    'deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f',  // Ethereum (ropsten)
-    'cfc59efb-3b21-5340-ae96-8cadb4ce31a8',  // "COIN" Example ERC20 token
+    test_config.assetIds.Arweave,
+    test_config.assetIds.Bitcoin,
+    test_config.assetIds.Ether,
+    test_config.assetIds.ExampleERC20,
   ];
   const createdWallets = await tCreateWallets(t, clientele, assetIds, password);
 
@@ -192,10 +186,10 @@ test('Testing transactions.create()', async function (t) {
   const clientele = getClienteleAPI(username, password);
 
   const assetIds = [
-    // '51bfa4b5-6499-5fe2-998b-5fb3c9403ac7',  // Arweave (internal testnet)
-    // 'a3c18f74-935e-5d75-bd3c-ce0fb5464414',  // Bitcoin (testnet)
-    // 'deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f',  // Ethereum (ropsten)
-    'cfc59efb-3b21-5340-ae96-8cadb4ce31a8',  // "COIN" Example ERC20 token
+    // test_config.assetIds.Arweave,
+    // test_config.assetIds.Bitcoin,
+    // test_config.assetIds.Ether,
+    test_config.assetIds.ExampleERC20,
   ];
   const createdWallets = await tCreateWallets(t, clientele, assetIds, password);
 
@@ -203,8 +197,13 @@ test('Testing transactions.create()', async function (t) {
 
   t.comment('Test listing all wallets of one user, and generating a transaction for those wallets which are Ethereum or Erc20 wallets.')
   for await (const wallet of clientele.wallets.list()) {
-    // Only test Tx creation for ETH.
-    if (-1 === ['ethereum_ropsten', 'erc20_ropsten'].indexOf(wallet.protocol)) {
+    // Only test Tx creation for ETH and ERC20.
+    const protocolNamesToTestTxWith = [
+      'ethereum', 'erc20',
+      'ethereum_ropsten', 'erc20_ropsten',
+      'ethereum_kovan', 'erc20_kovan',
+    ];
+    if (-1 === protocolNamesToTestTxWith.indexOf(wallet.protocol)) {
       continue;
     }
 
