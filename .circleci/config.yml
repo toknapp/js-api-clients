@@ -9,6 +9,7 @@ jobs:
       - run: echo $PLAT_CREDS | base64 --decode --ignore-garbage > ./packages/api-tests/.test_config.json
       - run: yarn --cwd ./packages/api-tests   
       - run: yarn --cwd ./packages/api-tests test
+      - run: node ./packages/api-tests/delete-all-users.js -c ./packages/api-tests/.test_config-local.json --force
 
 workflows:
   version: 2
