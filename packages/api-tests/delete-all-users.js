@@ -37,7 +37,7 @@ async function deleteAllUsers() {
   }
   for await (const user of tenancy.users.list()) {
     if (user.username.startsWith('txtest-')) {
-      // Skip users for whom funds might have gotten stuck in a failed transaction.
+      // Skip users for whom funds might have gotten stuck in a failed transaction
       continue;
     }
 
