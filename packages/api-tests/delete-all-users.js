@@ -36,14 +36,14 @@ async function deleteAllUsers() {
     return;
   }
   for await (const user of tenancy.users.list()) {
-    if (username.startsWith('txtest-')) {
-      // Skip users for which funds might have gotten stuck in a failed transaction.
+    if (user.username.startsWith('txtest-')) {
+      // Skip users for whom funds might have gotten stuck in a failed transaction.
       continue;
     }
 
     let isDeleted;
     try {
-      isDeleted = await tenancy.users.delete(username);
+      isDeleted = await tenancy.users.delete(user.username);
     }
     catch (error) {
       inspect('Deleting the user failed.');
