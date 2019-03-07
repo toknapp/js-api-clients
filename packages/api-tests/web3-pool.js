@@ -5,6 +5,7 @@ const Web3 = require('web3');
 const web3Pool = new Map();
 
 function getWeb3(infuraProjectId, netName='ropsten') {
+  // mainnet does use `mainnet.infura.io` as domain name, not `infura.io`
   const url = `wss://${netName}.infura.io/ws/v3/${infuraProjectId}`;
   if (! web3Pool.has(url)) {
     const provider = new Web3.providers.WebsocketProvider(url);
@@ -19,6 +20,9 @@ function disconnectAll() {
       web3.currentProvider.disconnect();
     }
   }
+  // Do not keep disconnected providers around. If need be, re-create them,
+  // which will also re-connect them.
+  web3Pool.clear();
 }
 
 

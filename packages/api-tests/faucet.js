@@ -5,12 +5,20 @@ const minimalTransferABI = erc20ABI.filter(abi => (abi.type == 'function') && (a
 
 const web3Pool = require('./web3-pool.js');
 
+const {
+  inspect, inspectError, readlineQuestionPromise,
+} = require('./util.js');
+
+
 async function prepareTxSendEther(web3, sender, recipient, amount, gasPrice=3.5e9, nonce=null) {
   const GAS_LIMIT_ETH_TRANSFER = 21000;
   const gasLimit = toBN(GAS_LIMIT_ETH_TRANSFER);
   gasPrice = toBN(gasPrice);
   const gasCost = gasLimit.mul(gasPrice);
 
+  if (nonce) {
+    inspect(`prepareTxSendEther nonce == ${nonce.toString(10)}`);
+  }
   if (! nonce) {
     nonce = await web3.eth.getTransactionCount(sender);
   }
@@ -33,6 +41,9 @@ async function prepareTxSendEther(web3, sender, recipient, amount, gasPrice=3.5e
 
 async function prepareTxTransferErc20(web3, contract, sender, recipient, amount, gasPrice=3.5e9, gasLimit=51241, nonce=null) {
   const transferCall = web3.eth.abi.encodeFunctionCall(minimalTransferABI, [recipient, toBN(amount).toString(10)]);
+  if (nonce) {
+    inspect(`prepareTxTransferErc20 nonce == ${nonce.toString(10)}`);
+  }
   if (! nonce) {
     nonce = await web3.eth.getTransactionCount(sender);
   }
@@ -49,9 +60,11 @@ function sendTx(web3, rawTransaction, confirmationThreshold, logger) {
   if (! logger) logger = msg => undefined;
   return new Promise(function promiseExecutor(resolvePromise, rejectPromise) {
     let rejectionReceipt = null;
+    let removeTxListeners;
 
-    web3.eth.sendSignedTransaction(rawTransaction)
-    .on('confirmation', function(confirmationNumber, receipt) {
+    const txPromise = web3.eth.sendSignedTransaction(rawTransaction);
+
+    const txConfirmationListener = function(confirmationNumber, receipt) {
       logger(`confirmation number: ${confirmationNumber}`);
       if (! receipt.status) {
         rejectionReceipt = receipt;
@@ -62,6 +75,7 @@ function sendTx(web3, rawTransaction, confirmationThreshold, logger) {
         const transactionStatus = receipt.status;
         const transactionReceipt = receipt;
 
+        removeTxListeners();
         resolvePromise({
           success: true,
           confirmationNumber,
@@ -70,10 +84,30 @@ function sendTx(web3, rawTransaction, confirmationThreshold, logger) {
           transactionReceipt,
         });
       }
-    })
-    .on('error', function(error) {
+      else {
+        // Keep listening for more confirmations.
+        txPromise.once('confirmation', txConfirmationListener);
+      }
+    };
+    txPromise.once('confirmation', txConfirmationListener);
+
+    const txErrorListener = function(error) {
+      // removeTxListeners();
       rejectPromise({success: false, error, rejectionReceipt});
-    });
+    }
+    txPromise.once('error', txErrorListener);
+
+    // txPromise.then(removeTxListeners); // This is triggered by the receipt, before we receive additional confirmations (???)
+    txPromise.catch(removeTxListeners);
+    txPromise.finally(removeTxListeners);
+
+    removeTxListeners = function() {
+      txPromise.off('confirmation', txConfirmationListener);
+      txPromise.off('error', txErrorListener);
+      if (txPromise.removeAllListeners) {
+        txPromise.removeAllListeners(); // `.removeAllListeners()` is not documented at https://web3js.readthedocs.io/en/1.0/callbacks-promises-events.html
+      }
+    };
   });
 }
 
@@ -85,19 +119,40 @@ function ensureHexPrefix(hexString) {
 class EthereumAndErc20Faucet {
   constructor(config) {
     this.config = config;
-    this.web3 = web3Pool.getWeb3(this.config.infuraProjectId, this.config.netName);
+    this.currentNonce = toBN(0);
   }
 
-  async getInitialNonce() {
-    return toBN(await this.web3.eth.getTransactionCount(this.config.holder.address));
+  getWeb3() {
+    return web3Pool.getWeb3(this.config.infuraProjectId, this.config.netName);
+  }
+
+  async syncCurrentNonceFromBlockChain() {
+    const blockChainNonce = toBN(await this.getWeb3().eth.getTransactionCount(this.config.holder.address));
+    if (blockChainNonce.gt(this.currentNonce)) {
+      this.currentNonce = blockChainNonce;
+    }
+    return this.currentNonce;
+  }
+
+  async getCurrentNonce() {
+    // Just in case we forgot to sync up before use.
+    if (toBN(0).eq(this.currentNonce)) {
+      await this.syncCurrentNonceFromBlockChain();
+    }
+    return this.currentNonce;
+  }
+
+  incrementCurrentNonce() {
+    this.currentNonce = this.currentNonce.add(toBN(1));
+    return this.currentNonce;
   }
 
   async signAndSend(tx, logger) {
     if (! logger) logger = msg => undefined;
     const key = ensureHexPrefix(this.config.holder.key);
-    const signedTxBundle = await this.web3.eth.accounts.signTransaction(tx, key);
+    const signedTxBundle = await this.getWeb3().eth.accounts.signTransaction(tx, key);
     try {
-      return await sendTx(this.web3, signedTxBundle.rawTransaction, this.config.confirmationThreshold, logger);
+      return await sendTx(this.getWeb3(), signedTxBundle.rawTransaction, this.config.confirmationThreshold, logger);
     }
     catch (error) {
       // TODO Re-think error handling.
@@ -105,28 +160,28 @@ class EthereumAndErc20Faucet {
     }
   }
 
-  async faucetEth(recipient, amount, nonce, logger) {
+  async faucetEth(recipient, amount, logger) {
     const txSendEther = await prepareTxSendEther(
-      this.web3,
+      this.getWeb3(),
       this.config.holder.address,
       recipient,
       toBN(amount),
       this.config.gasPrice,
-      nonce
+      await this.getCurrentNonce()
     );
     return await this.signAndSend(txSendEther, logger);
   }
 
-  async faucetErc20(recipient, amount, nonce, logger) {
+  async faucetErc20(recipient, amount, logger) {
     const txTransferErc20 = await prepareTxTransferErc20(
-      this.web3,
+      this.getWeb3(),
       this.config.erc20.contract,
       this.config.holder.address,
       recipient,
       toBN(amount),
       this.config.gasPrice,
       this.config.erc20.gasLimit,
-      nonce
+      await this.getCurrentNonce()
     );
     return await this.signAndSend(txTransferErc20, logger);
   }
@@ -134,19 +189,18 @@ class EthereumAndErc20Faucet {
   async run(recipient, ethAmount, erc20Amount, logger) {
     if (! logger) logger = msg => undefined;
 
-    const initialNonce = await this.getInitialNonce();
+    await this.syncCurrentNonceFromBlockChain();
 
-    let faucets;
-    if (this.config.ethEnabled) {
-      faucets = [
-        this.faucetEth(recipient, ethAmount, initialNonce, msg => logger(`ETH faucet: ${msg}`)),
-        this.faucetErc20(recipient, erc20Amount, initialNonce.add(toBN(1)), msg => logger(`ERC20 faucet: ${msg}`))
-      ];
+    const faucets = [];
+
+    if (toBN(ethAmount).gt(toBN(0))) {
+      faucets.push(this.faucetEth(recipient, ethAmount, msg => logger(`ETH faucet: ${msg}`)));
+      this.incrementCurrentNonce(); // Increment "by hand" since we are about to send multiple transactions into the same pending block.
     }
-    else {
-      faucets = [
-        this.faucetErc20(recipient, erc20Amount, initialNonce, msg => logger(`ERC20 faucet: ${msg}`))
-      ];
+
+    if (toBN(erc20Amount).gt(toBN(0))) {
+      faucets.push(this.faucetErc20(recipient, erc20Amount, msg => logger(`ERC20 faucet: ${msg}`)));
+      this.incrementCurrentNonce(); // Increment "by hand" since we are about to send multiple transactions into the same pending block.
     }
 
     return await Promise.all(faucets);

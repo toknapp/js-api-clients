@@ -33,6 +33,7 @@
   "dependencies": {
     "@upvest/clientele-api": "^0.0.7",
     "@upvest/tenancy-api": "^0.0.7",
+    "bn.js": "^4.11.8",
     "clean-webpack-plugin": "^1.0.0",
     "commander": "^2.19.0",
     "crypto-random-string": "^1.0.0",

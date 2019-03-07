@@ -29,13 +29,16 @@
         "address": "0x0123456789abcdef0123456789abcdef01234567",
         "key": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
       },
-      "ethEnabled": false,
       "erc20": {
         "contract": "0x89abcdef0123456789abcdef0123456789abcdef",
         "gasLimit": 100000,
         "amount": 17,
         "symbol": "COIN",
         "assetId": "cfc59efb-3b21-5340-ae96-8cadb4ce31a8"
+      },
+      "eth": {
+        "amount": 1e15,
+        "assetId": "deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f"
       },
       "confirmationThreshold": 4,
       "gasPrice": 3.5e9
