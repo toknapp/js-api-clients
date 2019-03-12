@@ -46,6 +46,11 @@ class UpvestClienteleAPI {
     return response.data.echo;
   }
 
+  async offboard(password) {
+    const response = await this.client.post('clientele/offboard', { password }, { responseType: 'arraybuffer' });
+    return response.data;
+  }
+
   get assets() {
     if (! this.assetsEndpoint) {
       this.assetsEndpoint = new AssetsEndpoint(this.client);

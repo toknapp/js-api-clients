@@ -40,6 +40,7 @@
     "express": "^4.16.4",
     "fast-xml-parser": "^3.12.9",
     "html-webpack-plugin": "^3.2.0",
+    "jszip": "^3.2.0",
     "opn": "^5.4.0",
     "tape": "^4.9.1",
     "web3": "1.0.0-beta.37",
