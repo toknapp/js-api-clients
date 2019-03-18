@@ -14,7 +14,7 @@ const cryptoRandomString = require('crypto-random-string');
 const { EthereumAndErc20Faucet } = require('./faucet.js');
 
 const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
-const { UpvestClienteleAPI } = require('@upvest/clientele-api');
+const { UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token } = require('@upvest/clientele-api');
 
 const {
   inspect, inspectResponse, inspectError, readlineQuestionPromise,
@@ -45,7 +45,7 @@ module.exports = {
   BN, int2BN, hex2BN,
   partials,
   setTimeoutPromise, cryptoRandomString, EthereumAndErc20Faucet,
-  UpvestTenancyAPI, UpvestClienteleAPI,
+  UpvestTenancyAPI, UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token,
   inspect, inspectResponse, inspectError, readlineQuestionPromise,
   getBalanceForAssetId,
   config,
