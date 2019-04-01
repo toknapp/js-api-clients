@@ -6,6 +6,12 @@
     "private_key_base64_last_chance_to_see": "SpZaStjZwgpa0QOOXEOIlCZPLhYYhLX+Y+wWeg2P+qc=",
     "public_key_base64": "biK+4ISWPYLpwsDaF4wl6UXKgxy3I6Xigc82JJf11go="
   },
+  "webhook": {
+    "type": "appengine",
+    "url": "https://upvest-webhook2websocket.appspot.com/webhook/upvest-playground--YOUR_TENANT_NAME",
+    "wsUrl": "wss://upvest-webhook2websocket.appspot.com/websocket/upvest-playground--YOUR_TENANT_NAME",
+    "hmacKey": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
   "first_apikey": {
     "key": "tPKWL9B_yTgfSToOFJmLyg",
     "secret": "9O7tLb1ub6qLHZQ00ButDOcfvw9g7Gn8GzFB4WmsUrA",

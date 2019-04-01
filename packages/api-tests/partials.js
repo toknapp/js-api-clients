@@ -197,4 +197,5 @@ const tIsRecoveryKitValid = async (t, recoverykit) => {
 module.exports = {
   tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho, tCreateWallets,
   tWaitForWalletActivation, tWaitForBalanceUpdate, tIsRecoveryKitValid,
+  setTimeoutPromise,
 };

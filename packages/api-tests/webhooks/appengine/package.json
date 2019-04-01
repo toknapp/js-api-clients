@@ -1,0 +1,10 @@
+{
+  "private": false,
+  "name": "@upvest/api-tests-webhooks-via-google-appengine-websockets",
+  "version": "0.0.1",
+  "description": "Combined tests for the Upvest Tenancy API and the Upvest Clientele API",
+  "scripts": {},
+  "dependencies": {
+    "ws": "^6.2.1"
+  }
+}
