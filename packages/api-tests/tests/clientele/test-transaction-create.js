@@ -297,6 +297,7 @@ async function testTransactionsWithoutFaucet(t) {
     t.comment('Inspecting result of ETH transaction creation:');
     inspect(tx);
   }
+  t.end();
 }
 
 
@@ -310,6 +311,6 @@ if (('faucet' in testenv.config) && ('ethereum' in testenv.config.faucet)) {
 else {
   // Even without running an actual faucet, we are still using some faucet
   // config values in the test Tx. Just use the example config for that.
-  faucetConfig = require('../example.test_config.json').faucet.ethereum;
+  faucetConfig = require('../../example.test_config.json').faucet.ethereum;
   test('Testing ETH/ERC20 transactions.create() *without* faucet', testTransactionsWithoutFaucet);
 }
