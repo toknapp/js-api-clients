@@ -12,7 +12,8 @@ test('Testing assets.list() and assets.retrieve()', async function (t) {
 
   const clientele = testenv.getClienteleAPI(username, password);
 
-  t.comment('Test listing all assets, and retrieving each one of them.')
+  t.comment('Test listing all assets, and retrieving each one of them.');
+  let counter = 0;
   for await (const asset of clientele.assets.list()) {
     // t.comment('Inspecting listed asset:');
     // inspect(asset);
@@ -37,6 +38,12 @@ test('Testing assets.list() and assets.retrieve()', async function (t) {
 
     t.equal(asset.protocol, retrievedAsset.protocol, 'listed and retrieved asset.protocol are equal');
     t.notOk(asset.protocol.startsWith('co.upvest.kinds.'), 'asset.protocol does not start with "co.upvest.kinds."');
+
+    counter++;
+    if (counter > 30) {
+      // Shorten test runtime.
+      break;
+    }
   }
 
   t.end();
