@@ -1,16 +1,12 @@
 const testenv = require('../../testenv.js');
+const partials = require('../../partials.js');
 
 // Shortcuts to most-used facilities.
-const test = testenv.test;
-const partials = testenv.partials;
-const inspect = testenv.inspect;
-const int2BN = testenv.int2BN;
+const { test, inspect, int2BN } = testenv;
 
 
 let faucet = null;
 let faucetConfig;
-
-
 
 
 async function testTransactionsWithFaucet(t) {
@@ -36,9 +32,7 @@ async function testTransactionsWithFaucet(t) {
       faucetConfig.eth.assetId,
       faucetConfig.erc20.assetId,
     ];
-    const createdWallets = await partials.tCreateWallets(t, clientele, assetIds, password);
-
-    await partials.tWaitForWalletActivation(t, clientele);
+    const createdWallets = await partials.tCreateWallets(t, clientele, assetIds, username, password);
 
     t.comment('Generate transactions for those wallets which are Ethereum or Erc20 wallets.')
     for await (const wallet of clientele.wallets.list()) {
@@ -215,7 +209,6 @@ async function testTransactionsWithFaucet(t) {
 }
 
 
-
 async function testTransactionsWithoutFaucet(t) {
   const { username, password } = await partials.tCreateUser(t, testenv.tenancy);
   if (! username) return;
@@ -226,9 +219,7 @@ async function testTransactionsWithoutFaucet(t) {
     faucetConfig.eth.assetId,
     faucetConfig.erc20.assetId,
   ];
-  const createdWallets = await partials.tCreateWallets(t, clientele, assetIds, password);
-
-  await partials.tWaitForWalletActivation(t, clientele);
+  const createdWallets = await partials.tCreateWallets(t, clientele, assetIds, username, password);
 
   t.comment('Generate transactions for those wallets which are Ethereum or Erc20 wallets.')
   for await (const wallet of clientele.wallets.list()) {
@@ -299,8 +290,6 @@ async function testTransactionsWithoutFaucet(t) {
   }
   t.end();
 }
-
-
 
 
 if (('faucet' in testenv.config) && ('ethereum' in testenv.config.faucet)) {

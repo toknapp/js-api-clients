@@ -2,9 +2,7 @@
 class WebhookListener {
   constructor(webhookConfig) {
     this.webhookConfig = webhookConfig;
-    this.expectors = new Set();
-    this.allExpectationsAreMet = false;
-    this.allExpectationsMetCallbacks = new Set();
+    this.recordings = new Map();
     this.finalizeCallbacks = new Set();
 
     this.readyPromise = new Promise((resolveReadyPromise, rejectReadyPromise) => {
@@ -24,20 +22,11 @@ class WebhookListener {
     return this.readyPromise;
   }
 
-  addExpector(expector) {
-    this.expectors.add(expector);
-  }
-
-  areAllExpectationsMet(timeOut) {
-    return new Promise((resolveAllExpectationsMetPromise, rejectAllExpectationsMetPromise) => {
-      if (this.allExpectationsAreMet) {
-        resolveAllExpectationsMetPromise(true);
-      }
-      else {
-        const timeoutID = setTimeout(() => rejectAllExpectationsMetPromise(false), timeOut);
-        this.allExpectationsMetCallbacks.add(() => {clearTimeout(timeoutID); resolveAllExpectationsMetPromise(true);});
-      }
-    });
+  startRecording() {
+    const handle = Symbol();
+    const recording = new WebhookRecording(() => this.recordings.delete(handle));
+    this.recordings.set(handle, recording);
+    return recording;
   }
 
   finalize() {
@@ -46,21 +35,9 @@ class WebhookListener {
     }
   }
 
-  _processExpectors(body, simpleHeaders, rawHeaders, metaData) {
-    for (const expector of this.expectors) {
-      const expectationIsMet = expector(body, simpleHeaders, rawHeaders, metaData);
-      if (expectationIsMet) {
-        this.expectors.delete(expector);
-        break;
-      }
-    }
-
-    if (this.expectors.size == 0) {
-      this.finalize();
-      this.allExpectationsAreMet = true;
-      for (const allExpectationsMetCallback of this.allExpectationsMetCallbacks) {
-        allExpectationsMetCallback();
-      }
+  _processRecordings(body, simpleHeaders, rawHeaders, metaData) {
+    for (const recording of this.recordings.values()) {
+      recording.addRecord({ body, simpleHeaders, rawHeaders, metaData });
     }
   }
 
@@ -83,7 +60,7 @@ class WebhookListener {
         pubsubMessageId: message.id,
       };
 
-      this._processExpectors(body, simpleHeaders, rawHeaders, metaData);
+      this._processRecordings(body, simpleHeaders, rawHeaders, metaData);
     });
 
     this.finalizeCallbacks.add(() => {
@@ -102,11 +79,8 @@ class WebhookListener {
       const msgData = JSON.parse(message);
 
       const body = msgData.bodyIsHex ? Buffer.fromString(msgData.body, 'hex') : msgData.body;
-      const simpleHeaders = msgData.headers;
-      const rawHeaders = msgData.rawHeaders;
-      const metaData = {};
 
-      this._processExpectors(body, simpleHeaders, rawHeaders, metaData);
+      this._processRecordings(body, msgData.headers, msgData.rawHeaders, {});
     });
 
     this.finalizeCallbacks.add(() => {
@@ -115,6 +89,60 @@ class WebhookListener {
     });
 
     return this.appengineSubscription;
+  }
+}
+
+class WebhookRecording {
+  constructor(stopCallback) {
+    this.stopCallback = stopCallback;
+    this.records = [];
+    this.matchers = new Map();
+    this.allMatchedCallbacks = new Set();
+  }
+
+  addRecord(record) {
+    this.records.push(record);
+    this._matchRecord(record);
+    if (this._areAllMatchersSatisfied()) {
+      for (const allMatchedCallback of this.allMatchedCallbacks) {
+        allMatchedCallback();
+      }
+    }
+  }
+
+  addMatcher(matcher) {
+    this.matchers.set(matcher, false);
+  }
+
+  _matchRecord(record) {
+    for (const [matcher, previousResult] of this.matchers.entries()) {
+      if (! previousResult && matcher(record.body, record.simpleHeaders, record.rawHeaders, record.metaData)) {
+        this.matchers.set(matcher, true);
+      }
+    }
+  }
+
+  _areAllMatchersSatisfied() {
+    return Array.from(this.matchers.values()).reduce((accumulator, currentValue) => accumulator && currentValue, true);
+  }
+
+  areAllMatched(timeOut) {
+    for (const record of this.records) {
+      this._matchRecord(record);
+    }
+    return new Promise((resolveAllMatchedPromise, rejectAllMatchedPromise) => {
+      if (this._areAllMatchersSatisfied()) {
+        resolveAllMatchedPromise(true);
+      }
+      else {
+        const timeoutID = setTimeout(() => rejectAllMatchedPromise(false), timeOut);
+        this.allMatchedCallbacks.add(() => {clearTimeout(timeoutID); resolveAllMatchedPromise(true);});
+      }
+    });
+  }
+
+  stop() {
+    this.stopCallback();
   }
 }
 

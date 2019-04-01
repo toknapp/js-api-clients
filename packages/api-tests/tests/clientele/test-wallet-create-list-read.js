@@ -1,11 +1,10 @@
 const crypto = require('crypto');
 
 const testenv = require('../../testenv.js');
+const partials = require('../../partials.js');
 
 // Shortcuts to most-used facilities.
-const test = testenv.test;
-const partials = testenv.partials;
-const inspect = testenv.inspect;
+const { test, inspect } = testenv;
 
 
 test('Testing wallets.create(), wallets.list() and wallets.retrieve()', async function (t) {
@@ -21,38 +20,7 @@ test('Testing wallets.create(), wallets.list() and wallets.retrieve()', async fu
     testenv.config.assetIds.ExampleERC20,
   ];
 
-  const webhooks = new testenv.WebhookListener(testenv.config.webhook);
-
-  for (const assetId of assetIds) {
-    webhooks.addExpector((body, simpleHeaders, rawHeaders, metaData) => {
-      const webhookPayload = JSON.parse(body);
-      if (webhookPayload.data.username != username) {
-        // We do not expect other test run's webhooks.
-        return false;
-      }
-      t.equal(webhookPayload.action, 'wallet.created', 'Webhook action is "wallet.created"');
-
-      const signatureHeader = simpleHeaders['X-Up-Signature'];
-      t.ok(signatureHeader, 'Found webhook HMAC signature header');
-      const hmac = crypto.createHmac('sha256', testenv.config.webhook.hmacKey).update(body, 'utf8').digest('hex');
-      t.equal(signatureHeader, 'sha256=' + hmac, 'Webhook HMAC signature matches');
-
-      return true;
-    });
-  }
-
-  await webhooks.ready;
-
-  const createdWallets = await partials.tCreateWallets(t, clientele, assetIds, password);
-
-  try {
-    const areAllExpectedWebhooksCalled = await webhooks.areAllExpectationsMet(3 * 60 * 1000);
-    t.ok(areAllExpectedWebhooksCalled, 'All expected webhooks were called');
-  }
-  catch (err) {
-    t.fail('Timed out while waiting for all expected webhooks to be called');
-  }
-  webhooks.finalize();
+  const createdWallets = await partials.tCreateWallets(t, clientele, assetIds, username, password);
 
   t.comment('Test listing all wallets of one user, and retrieving each one of them.')
   let walletCount = 0;

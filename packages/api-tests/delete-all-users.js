@@ -10,7 +10,7 @@ const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 
 const {
   inspect, inspectError, tGetCachedOrCreateUser, tCreateUser, tEcho,
-  tCreateWallets, tWaitForWalletActivation, readlineQuestionPromise,
+  tCreateWallets, readlineQuestionPromise,
 } = require('./util.js');
 
 const { test_config, forced } = require('./cli-options.js');

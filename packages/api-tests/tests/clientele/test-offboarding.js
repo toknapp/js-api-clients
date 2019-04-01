@@ -1,7 +1,8 @@
 const testenv = require('../../testenv.js');
+const partials = require('../../partials.js');
 
 // Shortcuts to most-used facilities.
-const { test, partials, inspect } = testenv;
+const { test, inspect } = testenv;
 
 const JSZip = require("jszip");
 
@@ -17,9 +18,7 @@ test('Testing wallets.create(), and offboarding', async function (t) {
   const assetIds = [
     testenv.config.assetIds.Ether,
   ];
-  const createdWallets = await partials.tCreateWallets(t, clientele, assetIds, password);
-
-  await partials.tWaitForWalletActivation(t, clientele);
+  const createdWallets = await partials.tCreateWallets(t, clientele, assetIds, username, password);
 
   const walletsById = new Map();
   const walletIds = new Set();

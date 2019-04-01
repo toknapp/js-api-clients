@@ -25,6 +25,26 @@ const {
 
 const { test_config: config } = require('./cli-options.js');
 
+let webhooks;
+
+const getWebhooks = async () => {
+  if ('undefined' === typeof webhooks) {
+    if (config.webhook) {
+      webhooks = new WebhookListener(config.webhook);
+      await webhooks.ready;
+      test.onFinish(() => webhooks.finalize());
+    }
+    else {
+      webhooks = null;
+    }
+  }
+  return webhooks;
+}
+
+const getWebhookRecording = async () => {
+  return (await getWebhooks()).startRecording();
+}
+
 const tenancy = new UpvestTenancyAPI(
   config.baseURL,
   config.first_apikey.key,
@@ -40,17 +60,15 @@ const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
   password
 );
 
-const partials = require('./partials.js');
-
 module.exports = {
   test,
   BN, int2BN, hex2BN,
-  partials,
   setTimeoutPromise, cryptoRandomString, EthereumAndErc20Faucet, WebhookListener,
   UpvestTenancyAPI, UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token,
   inspect, inspectResponse, inspectError, readlineQuestionPromise,
   getBalanceForAssetId,
   config,
+  getWebhooks, getWebhookRecording,
   tenancy,
   getClienteleAPI,
 }

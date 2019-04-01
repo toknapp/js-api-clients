@@ -1,9 +1,8 @@
 const testenv = require('../../testenv.js');
+const partials = require('../../partials.js');
 
 // Shortcuts to most-used facilities.
-const test = testenv.test;
-const partials = testenv.partials;
-const inspect = testenv.inspect;
+const { test, inspect } = testenv;
 
 
 test('Testing users.list()', async function (t) {

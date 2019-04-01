@@ -1,9 +1,13 @@
+const crypto = require('crypto');
+
 const util = require('util');
 const setTimeoutPromise = util.promisify(setTimeout);
 
 const cryptoRandomString = require('crypto-random-string');
 
 const xmlParser = require('fast-xml-parser');
+
+const testenv = require('./testenv.js');
 
 const {
   inspect, inspectResponse, inspectError, readlineQuestionPromise, getBalanceForAssetId
@@ -29,8 +33,15 @@ const tGetCachedOrCreateUser = async (t, tenancy) => {
 
 const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds) => {
   t.comment('Create user.')
+  const withAssets = Array.isArray(assetIds) && assetIds.length > 0;
   const username = cryptoRandomString(10);
   const password = cryptoRandomString(10);
+
+  let webhookRecording;
+  if (withAssets) {
+    webhookRecording = await testenv.getWebhookRecording();
+  }
+
   let user;
   try {
     user = await tenancy.users.create(username, password, clientIp, userAgent, assetIds);
@@ -41,6 +52,45 @@ const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds) => {
   }
 
   t.equal(user.username, username, 'Actual and expected username are equal');
+
+  if (withAssets) {
+    for (const walletId of user.wallet_ids) {
+      webhookRecording.addMatcher((body, simpleHeaders, rawHeaders, metaData) => {
+        const webhookPayload = JSON.parse(body);
+        if (webhookPayload.data.username != username) {
+          // We do not match other test run's webhooks.
+          return false;
+        }
+
+        if (webhookPayload.data.id != walletId) {
+          // This is not the webhook this matcher is looking for.
+          return false;
+        }
+
+        t.equal(webhookPayload.action, 'wallet.created', 'Webhook action is "wallet.created"');
+
+        const signatureHeader = simpleHeaders['X-Up-Signature'];
+        t.ok(signatureHeader, 'Found webhook HMAC signature header');
+        const hmac = crypto.createHmac('sha256', testenv.config.webhook.hmacKey).update(body, 'utf8').digest('hex');
+        t.equal(signatureHeader, 'sha256=' + hmac, 'Webhook HMAC signature matches');
+
+        t.notEqual(webhookPayload.data.address.length, 0, `Received webhook with wallet address for Wallet ID ${walletId}.`);
+
+        return true;
+      });
+    }
+
+    try {
+      const areAllExpectedWebhooksCalled = await webhookRecording.areAllMatched(3 * 60 * 1000);
+      t.ok(areAllExpectedWebhooksCalled, 'All expected webhooks were called');
+    }
+    catch (err) {
+      inspect(err);
+      t.fail('Timed out while waiting for all expected webhooks to be called');
+    }
+
+    webhookRecording.stop();
+  }
 
   user.password = password;
   return user;
@@ -77,8 +127,11 @@ const tEcho = async (t, api) => {
   return true;
 };
 
-const tCreateWallets = async (t, api, assetIds, password) => {
+const tCreateWallets = async (t, api, assetIds, username, password) => {
   t.comment(`Create wallets for ${assetIds.length} assets.`)
+
+  const webhookRecording = await testenv.getWebhookRecording();
+
   let createdWallets = [];
   for (const assetId of assetIds) {
     let wallet;
@@ -90,6 +143,31 @@ const tCreateWallets = async (t, api, assetIds, password) => {
     }
     // t.comment('Inspecting created wallet:');
     // inspect(wallet);
+
+    webhookRecording.addMatcher((body, simpleHeaders, rawHeaders, metaData) => {
+      const webhookPayload = JSON.parse(body);
+      if (webhookPayload.data.username != username) {
+        // We do not match other test run's webhooks.
+        return false;
+      }
+
+      if (webhookPayload.data.id != wallet.id) {
+        // This is not the webhook this matcher is looking for.
+        return false;
+      }
+
+      t.equal(webhookPayload.action, 'wallet.created', 'Webhook action is "wallet.created"');
+
+      const signatureHeader = simpleHeaders['X-Up-Signature'];
+      t.ok(signatureHeader, 'Found webhook HMAC signature header');
+      const hmac = crypto.createHmac('sha256', testenv.config.webhook.hmacKey).update(body, 'utf8').digest('hex');
+      t.equal(signatureHeader, 'sha256=' + hmac, 'Webhook HMAC signature matches');
+
+      t.notEqual(webhookPayload.data.address.length, 0, `Received webhook with wallet address for Wallet ID ${wallet.id}.`);
+
+      return true;
+    });
+
     let createdAssetIds = [];
     for (const balance of wallet.balances) {
       createdAssetIds.push(balance.asset_id);
@@ -97,6 +175,18 @@ const tCreateWallets = async (t, api, assetIds, password) => {
     t.ok(-1 !== createdAssetIds.indexOf(assetId), 'Created wallet contains balance for requested asset.');
     createdWallets.push(wallet);
   }
+
+  try {
+    const areAllExpectedWebhooksCalled = await webhookRecording.areAllMatched(3 * 60 * 1000);
+    t.ok(areAllExpectedWebhooksCalled, 'All expected webhooks were called');
+  }
+  catch (err) {
+    inspect(err);
+    t.fail('Timed out while waiting for all expected webhooks to be called');
+  }
+
+  webhookRecording.stop();
+
   return createdWallets;
 };
 

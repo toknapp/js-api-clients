@@ -81,8 +81,6 @@ function getBalanceForAssetId(wallet, assetId) {
 
 module.exports = {
   setDifference, setEqual, inspect, inspectResponse, inspectError,
-  // tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho,
-  // tCreateWallets, tWaitForWalletActivation,
   readlineQuestionPromise,
   getBalanceForAssetId
 };
