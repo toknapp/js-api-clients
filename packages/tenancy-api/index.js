@@ -58,6 +58,13 @@ class UpvestTenancyAPI {
     return this.usersEndpoint;
   }
 
+  get webhooks() {
+    if (! this.webhooksEndpoint) {
+      this.webhooksEndpoint = new WebhooksEndpoint(this.client);
+    }
+    return this.webhooksEndpoint;
+  }
+
   get assets() {
     if (! this.assetsEndpoint) {
       this.assetsEndpoint = new AssetsEndpoint(this.client);
@@ -131,6 +138,78 @@ class UsersEndpoint {
 
   async delete(username) {
     const response = await this.client.delete(`tenancy/users/${encodeURIComponent(username)}`);
+    return response.status == 204;
+  }
+}
+
+
+class WebhooksEndpoint {
+  constructor(client) {
+    this.client = client;
+  }
+
+  async create(url, headers, version, status, events) {
+    const data = { url, headers, version, status, events };
+    const response = await this.client.post('tenancy/webhooks/', data);
+    return response.data;
+  }
+
+  async* list(pageSize) {
+    let cursor = null;
+    do {
+      const params = {};
+      if (cursor) {
+        params['cursor'] = cursor;
+      }
+      if (pageSize) {
+        params['page_size'] = pageSize;
+      }
+      let response;
+      try {
+        response = await this.client.get('tenancy/webhooks/', {params});
+      }
+      catch (error) {
+        console.log('Caught error while trying to get webhook list.');
+        if ('response' in error) {
+          console.dir(error.response.config.url, {depth:null, colors:true});
+          console.dir(error.response.config.headers, {depth:null, colors:true});
+          console.dir(error.response.status, {depth:null, colors:true});
+          console.dir(error.response.data, {depth:null, colors:true});
+        }
+        else {
+          console.log('Caught error without response:');
+          console.dir(error, {depth:null, colors:true});
+        }
+        return; // Stop iteration.
+      }
+      for (const result of response.data.results) {
+        yield result;
+      }
+      if (response.data.next != null) {
+        let nextUrl = new URL(response.data.next);
+        cursor = nextUrl.searchParams.get('cursor');
+        // TODO Figure out how to use the whole URL in `next` instead of this parsing.
+      }
+      else {
+        cursor = null;
+      }
+    } while (cursor != null);
+  }
+
+  async retrieve(id) {
+    const params = {};
+    const response = await this.client.get(`tenancy/webhooks/${id}`, params);
+    return response.data;
+  }
+
+  async update(id, url, headers, version, status, events) {
+    const data = { url, headers, version, status, events };
+    const response = await this.client.patch(`tenancy/webhooks/${id}`, data);
+    return response.status == 200;
+  }
+
+  async delete(id) {
+    const response = await this.client.delete(`tenancy/webhooks/${id}`);
     return response.status == 204;
   }
 }
