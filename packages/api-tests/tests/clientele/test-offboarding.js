@@ -31,7 +31,17 @@ test('Testing wallets.create(), and offboarding', async function (t) {
   const zipFileRaw = await clientele.offboard(password);
 
   t.comment('Parsing Zip file and verifying contents');
-  const zipFile = await JSZip.loadAsync(zipFileRaw);
+  let zipFile;
+  try {
+    zipFile = await JSZip.loadAsync(zipFileRaw);
+  }
+  catch (err) {
+    console.log(testenv.hexdump(Buffer.from(zipFileRaw)));
+    inspect(err);
+    t.fail('Error while parsing Zip file');
+    t.end();
+    return;
+  }
 
   const walletIdsInZipFile = new Set();
   for (const [fileName, file] of Object.entries(zipFile.files)) {
