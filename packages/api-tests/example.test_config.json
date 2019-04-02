@@ -1,5 +1,6 @@
 {
   "baseURL": "http://127.0.0.1:8000/1.0/",
+  "timeOut": 120000,
   "tenant": {
     "name": "YOUR_TENANT_NAME",
     "id": 1337,

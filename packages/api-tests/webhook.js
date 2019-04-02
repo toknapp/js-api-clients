@@ -146,6 +146,23 @@ class WebhookRecording {
   }
 }
 
+
+// For test configs without webhook config.
+class DummyWebhookRecording {
+  constructor() {}
+
+  addMatcher(matcher) {}
+
+  areAllMatched(timeOut) {
+    return new Promise((resolveAllMatchedPromise, rejectAllMatchedPromise) => {
+      resolveAllMatchedPromise(true);
+    });
+  }
+
+  stop() {}
+}
+
+
 module.exports = {
-  WebhookListener,
+  WebhookListener, DummyWebhookRecording
 };

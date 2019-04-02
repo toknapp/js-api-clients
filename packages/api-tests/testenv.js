@@ -13,7 +13,7 @@ const cryptoRandomString = require('crypto-random-string');
 
 const { EthereumAndErc20Faucet } = require('./faucet.js');
 
-const { WebhookListener } = require('./webhook.js');
+const { WebhookListener, DummyWebhookRecording } = require('./webhook.js');
 
 const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 const { UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token } = require('@upvest/clientele-api');
@@ -42,7 +42,8 @@ const getWebhooks = async () => {
 }
 
 const getWebhookRecording = async () => {
-  return (await getWebhooks()).startRecording();
+  const webhooks = await getWebhooks();
+  return webhooks ? webhooks.startRecording() : new DummyWebhookRecording();
 }
 
 const tenancy = new UpvestTenancyAPI(
@@ -50,6 +51,7 @@ const tenancy = new UpvestTenancyAPI(
   config.first_apikey.key,
   config.first_apikey.secret,
   config.first_apikey.passphrase_last_chance_to_see,
+  config.timeOut,
 );
 
 const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
@@ -57,7 +59,9 @@ const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
   config.first_oauth2_client.client_id,
   config.first_oauth2_client.client_secret,
   username,
-  password
+  password,
+  ['read', 'write', 'echo', 'wallet', 'transaction'],
+  config.timeOut,
 );
 
 module.exports = {

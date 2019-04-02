@@ -301,5 +301,8 @@ else {
   // Even without running an actual faucet, we are still using some faucet
   // config values in the test Tx. Just use the example config for that.
   faucetConfig = require('../../example.test_config.json').faucet.ethereum;
+  // Overwrite assetIds in example faucet config with assetIds from non-faucet config.
+  faucetConfig.eth.assetId = testenv.config.assetIds.Ether;
+  faucetConfig.erc20.assetId = testenv.config.assetIds.ExampleERC20;
   test('Testing ETH/ERC20 transactions.create() *without* faucet', testTransactionsWithoutFaucet);
 }

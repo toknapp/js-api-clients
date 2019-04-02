@@ -90,6 +90,9 @@ const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds) => {
     }
 
     webhookRecording.stop();
+
+    // In case no webhook setup is configured.
+    tWaitForWalletActivation(t, tenancy);
   }
 
   user.password = password;
@@ -186,6 +189,9 @@ const tCreateWallets = async (t, api, assetIds, username, password) => {
   }
 
   webhookRecording.stop();
+
+  // In case no webhook setup is configured.
+  tWaitForWalletActivation(t, api);
 
   return createdWallets;
 };

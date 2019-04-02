@@ -74,6 +74,9 @@ test('Testing users.updatePassword()', async function (t) {
 
   webhookRecording.stop();
 
+  // In case no webhook setup is configured.
+  testenv.tWaitForWalletActivation(t, testenv.tenancy);
+
   try {
     echo = await testenv.getClienteleAPI(username, password).echo('all good');
     t.fail('OAuth2 with original password should have failed, but did not.');
