@@ -64,6 +64,7 @@ test('Testing users.updatePassword()', async function (t) {
   }
 
   try {
+    t.comment('Waiting for all expected webhooks to be called.')
     const areAllExpectedWebhooksCalled = await webhookRecording.areAllMatched(3 * 60 * 1000);
     t.ok(areAllExpectedWebhooksCalled, 'All expected webhooks were called');
   }
@@ -75,7 +76,7 @@ test('Testing users.updatePassword()', async function (t) {
   webhookRecording.stop();
 
   // In case no webhook setup is configured.
-  testenv.tWaitForWalletActivation(t, testenv.tenancy);
+  partials.tWaitForWalletActivation(t, testenv.tenancy);
 
   try {
     echo = await testenv.getClienteleAPI(username, password).echo('all good');

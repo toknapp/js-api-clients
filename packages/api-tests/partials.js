@@ -81,6 +81,7 @@ const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds) => {
     }
 
     try {
+      t.comment('Waiting for all expected webhooks to be called.')
       const areAllExpectedWebhooksCalled = await webhookRecording.areAllMatched(3 * 60 * 1000);
       t.ok(areAllExpectedWebhooksCalled, 'All expected webhooks were called');
     }
@@ -180,6 +181,7 @@ const tCreateWallets = async (t, api, assetIds, username, password) => {
   }
 
   try {
+    t.comment('Waiting for all expected webhooks to be called.')
     const areAllExpectedWebhooksCalled = await webhookRecording.areAllMatched(3 * 60 * 1000);
     t.ok(areAllExpectedWebhooksCalled, 'All expected webhooks were called');
   }
