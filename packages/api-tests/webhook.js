@@ -92,6 +92,7 @@ class WebhookListener {
   }
 }
 
+
 class WebhookRecording {
   constructor(stopCallback) {
     this.stopCallback = stopCallback;
@@ -104,9 +105,7 @@ class WebhookRecording {
     this.records.push(record);
     this._matchRecord(record);
     if (this._areAllMatchersSatisfied()) {
-      for (const allMatchedCallback of this.allMatchedCallbacks) {
-        allMatchedCallback();
-      }
+      this.allMatchedCallbacks.forEach(allMatchedCallback => allMatchedCallback());
     }
   }
 
@@ -115,11 +114,12 @@ class WebhookRecording {
   }
 
   _matchRecord(record) {
-    for (const [matcher, previousResult] of this.matchers.entries()) {
-      if (! previousResult && matcher(record.body, record.simpleHeaders, record.rawHeaders, record.metaData)) {
-        this.matchers.set(matcher, true);
+    this.matchers.forEach((previousResult, matcher) => {
+      if (! previousResult && ! record.wasMatched && matcher(record.body, record.simpleHeaders, record.rawHeaders, record.metaData)) {
+        this.matchers.set(matcher, true); // Let each matcher match only once.
+        record.wasMatched = true; // Match each record only once.
       }
-    }
+    })
   }
 
   _areAllMatchersSatisfied() {
@@ -127,9 +127,7 @@ class WebhookRecording {
   }
 
   areAllMatched(timeOut) {
-    for (const record of this.records) {
-      this._matchRecord(record);
-    }
+    this.records.forEach(record => this._matchRecord(record));
     return new Promise((resolveAllMatchedPromise, rejectAllMatchedPromise) => {
       if (this._areAllMatchersSatisfied()) {
         resolveAllMatchedPromise(true);
