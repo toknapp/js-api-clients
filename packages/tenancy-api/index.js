@@ -148,52 +148,20 @@ class WebhooksEndpoint {
     this.client = client;
   }
 
-  async create(url, headers, version, status, events) {
-    const data = { url, headers, version, status, events };
+  async create(baseUrl, path, headers, version, status, name, hmacSecretKey, eventFilters) {
+    const data = { base_url_string:baseUrl, path, headers, version, status, name, hmac_secret_key:hmacSecretKey, event_filters:eventFilters };
     const response = await this.client.post('tenancy/webhooks/', data);
     return response.data;
   }
 
+  async verifyBaseUrl(baseUrl) {
+    const data = { verify_url:baseUrl };
+    const response = await this.client.post('tenancy/webhooks-verify/', data);
+    return response.data;
+  }
+
   async* list(pageSize) {
-    let cursor = null;
-    do {
-      const params = {};
-      if (cursor) {
-        params['cursor'] = cursor;
-      }
-      if (pageSize) {
-        params['page_size'] = pageSize;
-      }
-      let response;
-      try {
-        response = await this.client.get('tenancy/webhooks/', {params});
-      }
-      catch (error) {
-        console.log('Caught error while trying to get webhook list.');
-        if ('response' in error) {
-          console.dir(error.response.config.url, {depth:null, colors:true});
-          console.dir(error.response.config.headers, {depth:null, colors:true});
-          console.dir(error.response.status, {depth:null, colors:true});
-          console.dir(error.response.data, {depth:null, colors:true});
-        }
-        else {
-          console.log('Caught error without response:');
-          console.dir(error, {depth:null, colors:true});
-        }
-        return; // Stop iteration.
-      }
-      for (const result of response.data.results) {
-        yield result;
-      }
-      if (response.data.next != null) {
-        let nextUrl = new URL(response.data.next);
-        cursor = nextUrl.searchParams.get('cursor');
-        // TODO Figure out how to use the whole URL in `next` instead of this parsing.
-      }
-      else {
-        cursor = null;
-      }
-    } while (cursor != null);
+    yield* genericList('tenancy/webhooks/', this.client, pageSize);
   }
 
   async retrieve(id) {
@@ -202,8 +170,8 @@ class WebhooksEndpoint {
     return response.data;
   }
 
-  async update(id, url, headers, version, status, events) {
-    const data = { url, headers, version, status, events };
+  async update(id, baseUrl, path, headers, version, status, name, hmacSecretKey) {
+    const data = { base_url_string:baseUrl, path, headers, version, status, name, hmac_secret_key:hmacSecretKey };
     const response = await this.client.patch(`tenancy/webhooks/${id}`, data);
     return response.status == 200;
   }
