@@ -115,9 +115,14 @@ function hexdump(buf) {
   return lines.join('\n')
 }
 
+function removeHexPrefix(hexString) {
+  return (hexString.startsWith('0x') || hexString.startsWith('0X')) ? hexString.substring(2) : hexString;
+}
+
+
 module.exports = {
   setDifference, setEqual, inspect, inspectResponse, inspectError,
   readlineQuestionPromise,
   getBalanceForAssetId,
-  hexdump,
+  hexdump, removeHexPrefix,
 };

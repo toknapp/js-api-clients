@@ -138,8 +138,27 @@ class TransactionsEndpoint {
 }
 
 
+class SignaturesEndpoint {
+  constructor(client) {
+    this.client = client;
+  }
+
+  async sign(walletId, password, toSign, inputFormat, outputFormat) {
+    const data = {
+      input_format:inputFormat,
+      output_format:outputFormat,
+      to_sign:toSign,
+      password,
+    };
+    const response = await this.client.post(`kms/wallets/${walletId}/sign`, data);
+    return response.data;
+  }
+}
+
+
 module.exports = {
   AssetsEndpoint,
   WalletsEndpoint,
-  TransactionsEndpoint
+  TransactionsEndpoint,
+  SignaturesEndpoint
 };

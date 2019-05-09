@@ -20,7 +20,7 @@ const { UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token } = require('@upve
 
 const {
   inspect, inspectResponse, inspectError, readlineQuestionPromise,
-  getBalanceForAssetId, hexdump
+  getBalanceForAssetId, hexdump, removeHexPrefix
 } = require('./util.js');
 
 const { test_config: config } = require('./cli-options.js');
@@ -70,7 +70,7 @@ module.exports = {
   setTimeoutPromise, cryptoRandomString, EthereumAndErc20Faucet, WebhookListener,
   UpvestTenancyAPI, UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token,
   inspect, inspectResponse, inspectError, readlineQuestionPromise,
-  getBalanceForAssetId, hexdump,
+  getBalanceForAssetId, hexdump, removeHexPrefix,
   config,
   getWebhooks, getWebhookRecording,
   tenancy,
