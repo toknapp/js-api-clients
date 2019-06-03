@@ -2,6 +2,9 @@
 
 const childProcess = require('child_process');
 
+const util = require('util');
+const setTimeoutPromise = util.promisify(setTimeout);
+
 const parseOpts = require('minimist');
 
 const optsConfig = {
@@ -24,67 +27,90 @@ const opts = parseOpts(process.argv.slice(2), optsConfig);
 const LIST_MODE = opts.list;
 const FORCE_MODE = opts.force;
 
+const runner = childProcess.fork(`${__dirname}/runner.js`);
 
 function listMode() {
   return new Promise((resolve, reject) => {
-    const runner = childProcess.fork(`${__dirname}/runner.js`);
-    runner.on('message', (m) => {
-      switch(m.eventName) {
-        case 'runner:setupComplete':
-          console.log('Available configs and tests:', m);
-          runner.send({ eventName: 'exit' });
-          resolve(true);
-          break;
-      }
+    runner.on('close', (code, signal) => {
+      console.log('RUNNER close:', { code, signal });
     });
-  });
-}
 
+    runner.on('disconnect', () => {
+      console.log('RUNNER disconnect.');
+    });
 
-function runMode() {
-  return new Promise((resolve, reject) => {
+    runner.on('error', (err) => {
+      console.log('RUNNER error:', err);
+    });
 
-    opts.config = opts.config.filter(s => s.length > 0);
-    opts.test = opts.test.filter(s => s.length > 0);
-    // TODO Also read opts._ to gather desired testIds
-
-    console.log(opts);
-    resolve(true);
-    return;
-
-    const runner = childProcess.fork(`${__dirname}/runner.js`);
+    runner.on('exit', (code, signal) => {
+      console.log('RUNNER exit:', { code, signal });
+    });
 
     runner.on('message', (m) => {
-      console.log('PARENT got message:', m);
       switch(m.eventName) {
-        case 'runner:setupComplete':
-          for (const configId of m.configs) {
-            // TODO if configId(s) were given on the CLI, skip all others.
-            for (const testId of m.tests) {
-              console.log(`configId == ${configId} + testId == ${testId}`);
-            }
+        case 'runner:state':
+          if (m.setupComplete) {
+            console.log('Available configs and tests:', m);
+            runner.send({ eventName: 'exit' });
+            resolve(true);
           }
-          runner.send({
-            eventName: 'startJob',
-            testId: 'clientele/fake1',
-            configId: 'playground',
-            timeout: 10 * 60 * 1000,
-          });
-          break;
-        case 'job:end':
-          runner.send({ eventName: 'exit' });
+          else {
+            setTimeout(() => runner.send({ eventName: 'getState' }), 20);
+          }
           break;
       }
     });
 
-
+    runner.send({ eventName: 'getState' });
   });
 }
+
+
+// function runMode() {
+//   return new Promise((resolve, reject) => {
+// 
+//     opts.config = opts.config.filter(s => s.length > 0);
+//     opts.test = opts.test.filter(s => s.length > 0);
+//     // TODO Also read opts._ to gather desired testIds
+// 
+//     console.log(opts);
+//     resolve(true);
+//     return;
+// 
+//     const runner = childProcess.fork(`${__dirname}/runner.js`);
+// 
+//     runner.on('message', (m) => {
+//       console.log('PARENT got message:', m);
+//       switch(m.eventName) {
+//         case 'runner:setupComplete':
+//           for (const configId of m.configs) {
+//             // TODO if configId(s) were given on the CLI, skip all others.
+//             for (const testId of m.tests) {
+//               console.log(`configId == ${configId} + testId == ${testId}`);
+//             }
+//           }
+//           runner.send({
+//             eventName: 'startJob',
+//             testId: 'clientele/oauth2',
+//             configId: 'playground',
+//             timeout: 10 * 60 * 1000,
+//           });
+//           break;
+//         case 'job:end':
+//           runner.send({ eventName: 'exit' });
+//           break;
+//       }
+//     });
+// 
+// 
+//   });
+// }
 
 
 if (LIST_MODE) {
-  listMode().then(process.exit());
+  listMode().then(() => process.exit());
 }
 else {
-  runMode().then(process.exit());
+  runMode().then(() => process.exit());
 }

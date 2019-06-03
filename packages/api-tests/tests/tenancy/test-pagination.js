@@ -25,7 +25,7 @@ test('Testing "cursor" and "page_size" parameters for lists and their error hand
     }
     catch (error) {
       console.log('Caught error while trying to get user list.');
-      testenv.inspectError(error)
+      partials.tInspectError(t, error);
       continue;
     }
     t.equal(response.status, 200, 'Response status is 200');

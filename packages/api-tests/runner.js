@@ -150,6 +150,13 @@ class Job {
 
 
 class Runner extends EventEmitter {
+  constructor() {
+    super();
+    this.setupComplete = false;
+    this.tests = [];
+    this.configs = [];
+  }
+
   emitMessage(eventName, message) {
     message.eventName = eventName;
     message.runnerId = this.runnerId;
@@ -171,10 +178,15 @@ class Runner extends EventEmitter {
       this.exit = () => resolve('exit');
     });
 
-    this.emitMessage('runner:setupComplete', {
-      tests: Object.keys(this.tests),
-      configs: Object.keys(this.configs),
-    });
+    // this.emitMessage('runner:setupComplete', {
+    //   tests: Object.keys(this.tests),
+    //   configs: Object.keys(this.configs),
+    // });
+    // console.log('runner:setupComplete', {
+    //   tests: Object.keys(this.tests),
+    //   configs: Object.keys(this.configs),
+    // });
+    this.setupComplete = true;
   }
 
   async run() {
@@ -188,6 +200,9 @@ class Runner extends EventEmitter {
       return;
     }
     switch (message.eventName) {
+      case 'getState':
+        this.getState();
+        break;
       case 'exit':
         this.exit();
         break;
@@ -204,6 +219,14 @@ class Runner extends EventEmitter {
         this.deleteReturnedJobs();
         break;
     }
+  }
+
+  getState() {
+    this.emitMessage('runner:state', {
+      setupComplete: this.setupComplete,
+      tests: Object.keys(this.tests),
+      configs: Object.keys(this.configs),
+    });
   }
 
   startJob(testId, configId, timeout) {

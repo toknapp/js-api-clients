@@ -12,7 +12,7 @@ test('Testing time endpoint', async function (t) {
   }
   catch (error) {
     console.log('Caught error while trying to get current server time.');
-    testenv.inspectError(error)
+    partials.tInspectError(t, error);
   }
   t.equal(response.status, 200, 'Response status is 200');
 

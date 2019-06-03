@@ -7,8 +7,6 @@ const cryptoRandomString = require('crypto-random-string');
 
 const xmlParser = require('fast-xml-parser');
 
-const testenv = require('./testenv.js');
-
 
 function getPartials(testenv) {
 
@@ -43,7 +41,7 @@ function getPartials(testenv) {
   };
 
   const tErrorFail = (t, error, message) => {
-    tInspectError(error);
+    tInspectError(t, error);
     t.fail(message);
     t.end();
     return false;
@@ -60,7 +58,7 @@ function getPartials(testenv) {
   };
 
   const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds) => {
-    t.comment('Create user.')
+    t.comment('Create user.');
     const withAssets = Array.isArray(assetIds) && assetIds.length > 0;
     const username = cryptoRandomString(10);
     const password = cryptoRandomString(10);

@@ -19,7 +19,6 @@ const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 const { UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token } = require('@upvest/clientele-api');
 
 const {
-  inspect, inspectResponse, inspectError,
   getBalanceForAssetId, hexdump, removeHexPrefix
 } = require('./util.js');
 
@@ -67,7 +66,6 @@ function getTestenv(config) {
     BN, int2BN, hex2BN,
     setTimeoutPromise, cryptoRandomString, EthereumAndErc20Faucet, WebhookListener,
     UpvestTenancyAPI, UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token,
-    inspect, inspectResponse, inspectError,
     getBalanceForAssetId, hexdump, removeHexPrefix,
     config,
     getWebhooks, getWebhookRecording,
