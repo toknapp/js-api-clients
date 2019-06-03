@@ -1,16 +1,12 @@
 const util = require('util');
 const setTimeoutPromise = util.promisify(setTimeout);
 
-const xmlParser = require('fast-xml-parser');
-
-const cryptoRandomString = require('crypto-random-string');
-
 const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 const { UpvestClienteleAPI } = require('@upvest/clientele-api');
 
 const {
   inspect, inspectError, tGetCachedOrCreateUser, tCreateUser, tEcho,
-  tCreateWallets, readlineQuestionPromise,
+  tCreateWallets,
 } = require('./util.js');
 
 const { test_config, forced } = require('./cli-options.js');

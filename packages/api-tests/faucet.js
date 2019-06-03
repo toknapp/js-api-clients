@@ -5,19 +5,16 @@ const minimalTransferABI = erc20ABI.filter(abi => (abi.type == 'function') && (a
 
 const web3Pool = require('./web3-pool.js');
 
-const {
-  inspect, inspectError, readlineQuestionPromise,
-} = require('./util.js');
 
-
-async function prepareTxSendEther(web3, sender, recipient, amount, gasPrice=3.5e9, nonce=null) {
+async function prepareTxSendEther(web3, sender, recipient, amount, gasPrice=3.5e9, nonce=null, logger=null) {
+  if (! logger) logger = msg => undefined;
   const GAS_LIMIT_ETH_TRANSFER = 21000;
   const gasLimit = toBN(GAS_LIMIT_ETH_TRANSFER);
   gasPrice = toBN(gasPrice);
   const gasCost = gasLimit.mul(gasPrice);
 
   if (nonce) {
-    inspect(`prepareTxSendEther nonce == ${nonce.toString(10)}`);
+    logger(`prepareTxSendEther nonce == ${nonce.toString(10)}`);
   }
   if (! nonce) {
     nonce = await web3.eth.getTransactionCount(sender);
@@ -39,10 +36,11 @@ async function prepareTxSendEther(web3, sender, recipient, amount, gasPrice=3.5e
   };
 }
 
-async function prepareTxTransferErc20(web3, contract, sender, recipient, amount, gasPrice=3.5e9, gasLimit=51241, nonce=null) {
+async function prepareTxTransferErc20(web3, contract, sender, recipient, amount, gasPrice=3.5e9, gasLimit=51241, nonce=null, logger=null) {
+  if (! logger) logger = msg => undefined;
   const transferCall = web3.eth.abi.encodeFunctionCall(minimalTransferABI, [recipient, toBN(amount).toString(10)]);
   if (nonce) {
-    inspect(`prepareTxTransferErc20 nonce == ${nonce.toString(10)}`);
+    logger(`prepareTxTransferErc20 nonce == ${nonce.toString(10)}`);
   }
   if (! nonce) {
     nonce = await web3.eth.getTransactionCount(sender);
@@ -167,7 +165,8 @@ class EthereumAndErc20Faucet {
       recipient,
       toBN(amount),
       this.config.gasPrice,
-      await this.getCurrentNonce()
+      await this.getCurrentNonce(),
+      logger
     );
     return await this.signAndSend(txSendEther, logger);
   }
@@ -181,7 +180,8 @@ class EthereumAndErc20Faucet {
       toBN(amount),
       this.config.gasPrice,
       this.config.erc20.gasLimit,
-      await this.getCurrentNonce()
+      await this.getCurrentNonce(),
+      logger
     );
     return await this.signAndSend(txTransferErc20, logger);
   }

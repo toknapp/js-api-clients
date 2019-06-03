@@ -19,60 +19,61 @@ const { UpvestTenancyAPI } = require('@upvest/tenancy-api');
 const { UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token } = require('@upvest/clientele-api');
 
 const {
-  inspect, inspectResponse, inspectError, readlineQuestionPromise,
+  inspect, inspectResponse, inspectError,
   getBalanceForAssetId, hexdump, removeHexPrefix
 } = require('./util.js');
 
-const { test_config: config } = require('./cli-options.js');
+function getTestenv(config) {
+  const tenancy = new UpvestTenancyAPI(
+    config.baseURL,
+    config.first_apikey.key,
+    config.first_apikey.secret,
+    config.first_apikey.passphrase_last_chance_to_see,
+    config.timeOut,
+  );
 
-let webhooks;
+  const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
+    config.baseURL,
+    config.first_oauth2_client.client_id,
+    config.first_oauth2_client.client_secret,
+    username,
+    password,
+    ['read', 'write', 'echo', 'wallet', 'transaction'],
+    config.timeOut,
+  );
 
-const getWebhooks = async () => {
-  if ('undefined' === typeof webhooks) {
-    if (config.webhook) {
-      webhooks = new WebhookListener(config.webhook);
-      await webhooks.ready;
-      test.onFinish(() => webhooks.finalize());
+  let webhooks;
+
+  const getWebhooks = async () => {
+    if ('undefined' === typeof webhooks) {
+      if (config.webhook) {
+        webhooks = new WebhookListener(config.webhook);
+        await webhooks.ready;
+        test.onFinish(() => webhooks.finalize());
+      }
+      else {
+        webhooks = null;
+      }
     }
-    else {
-      webhooks = null;
-    }
+    return webhooks;
   }
-  return webhooks;
+
+  const getWebhookRecording = async () => {
+    const webhooks = await getWebhooks();
+    return webhooks ? webhooks.startRecording() : new DummyWebhookRecording();
+  }
+
+  return {
+    BN, int2BN, hex2BN,
+    setTimeoutPromise, cryptoRandomString, EthereumAndErc20Faucet, WebhookListener,
+    UpvestTenancyAPI, UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token,
+    inspect, inspectResponse, inspectError,
+    getBalanceForAssetId, hexdump, removeHexPrefix,
+    config,
+    getWebhooks, getWebhookRecording,
+    tenancy,
+    getClienteleAPI,
+  }
 }
 
-const getWebhookRecording = async () => {
-  const webhooks = await getWebhooks();
-  return webhooks ? webhooks.startRecording() : new DummyWebhookRecording();
-}
-
-const tenancy = new UpvestTenancyAPI(
-  config.baseURL,
-  config.first_apikey.key,
-  config.first_apikey.secret,
-  config.first_apikey.passphrase_last_chance_to_see,
-  config.timeOut,
-);
-
-const getClienteleAPI = (username, password) => new UpvestClienteleAPI(
-  config.baseURL,
-  config.first_oauth2_client.client_id,
-  config.first_oauth2_client.client_secret,
-  username,
-  password,
-  ['read', 'write', 'echo', 'wallet', 'transaction'],
-  config.timeOut,
-);
-
-module.exports = {
-  test,
-  BN, int2BN, hex2BN,
-  setTimeoutPromise, cryptoRandomString, EthereumAndErc20Faucet, WebhookListener,
-  UpvestTenancyAPI, UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token,
-  inspect, inspectResponse, inspectError, readlineQuestionPromise,
-  getBalanceForAssetId, hexdump, removeHexPrefix,
-  config,
-  getWebhooks, getWebhookRecording,
-  tenancy,
-  getClienteleAPI,
-}
+module.exports = { getTestenv };
