@@ -70,7 +70,7 @@ test('Testing just signing', async function testJustSigning(t) {
     t.equal(sig['curve'], CURVE, `Signature uses the "${CURVE}" curve.`);
 
     // Pseudocode for checking an Ethereum wallet address against public key:
-    // `lowercase(address) == lowercase(takeLastTwentyBytes(keccak256(concat(pubkey.x, pubkey.y))))`
+    // `lowercase(address) == lowercase(hex(takeLastTwentyBytes(keccak256(concat(pad32(pubkey.x), pad32(pubkey.y))))))`
 
     const pubKeyXPadded = removeHexPrefix(sig['public_key']['x']).padStart(64, '0');
     const pubKeyYPadded = removeHexPrefix(sig['public_key']['y']).padStart(64, '0');
