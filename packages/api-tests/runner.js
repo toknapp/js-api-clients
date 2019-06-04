@@ -47,6 +47,7 @@ class Job {
     this.recordedMessages = [];
     this.failed = false;
     this.ended = false;
+    this.timedOut = false;
     this.returned = false;
 
     this.schedule(test, config);
@@ -57,7 +58,7 @@ class Job {
     this.endPromise = new Promise((resolve, reject) => {
       const timeoutID = setTimeout(() => {
         this.emit('job:timeout', true);
-        this.ended = true;
+        this.timedOut = true;
         resolve('timeout');
       }, timeOut);
       this.resolveEndPromise = () => {
@@ -94,6 +95,7 @@ class Job {
   get state() {
     return {
       failed: this.failed,
+      timedOut: this.timedOut,
       ended: this.ended,
       returned: this.returned,
     }
@@ -174,18 +176,12 @@ class Runner extends EventEmitter {
     const configsRootDir = `${__dirname}/`;
     this.configs = await gatherFiles(configsRootDir + '.test_config-*.json', fn => fn.match(new RegExp(configsRootDir + '.test_config-(?<id>.*)\.json$')).groups.id);
 
+    // TODO Also gather configs from (base64) env vars.
+
     this.exitPromise = new Promise((resolve, reject) => {
       this.exit = () => resolve('exit');
     });
 
-    // this.emitMessage('runner:setupComplete', {
-    //   tests: Object.keys(this.tests),
-    //   configs: Object.keys(this.configs),
-    // });
-    // console.log('runner:setupComplete', {
-    //   tests: Object.keys(this.tests),
-    //   configs: Object.keys(this.configs),
-    // });
     this.setupComplete = true;
   }
 
