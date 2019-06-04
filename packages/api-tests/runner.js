@@ -33,6 +33,16 @@ async function gatherFiles(searchPattern, extractIdFromFilename) {
   return gathered;
 }
 
+function ensureJsonStringifyable(data, errorMessage) {
+  try {
+    const dummy = JSON.stringify(data);
+    return data;
+  }
+  catch (error) {
+    return `Error: ${errorMessage}`;
+  }
+}
+
 
 class Job {
   constructor(test, config, send, testId, configId, timeOut) {
@@ -46,6 +56,7 @@ class Job {
 
     this.recordedMessages = [];
     this.failed = false;
+    this.crashed = false;
     this.ended = false;
     this.timedOut = false;
     this.returned = false;
@@ -80,12 +91,38 @@ class Job {
       testenv,
       partials,
     }
-    process.nextTick(() => {
-      test.test(env).then(() => {
-        this.returned = true;
-        this.emit('job:return', true);
-      });
-    });
+    // process.nextTick(async () => {
+    const contain = async () => {
+      let result = null;
+      try {
+        result = test.test(env);
+        if (!(result instanceof Promise)) {
+          this.returned = true;
+          result = ensureJsonStringifyable(result, 'Unable to format result of test() as JSON');
+          this.emit('job:return', { result });
+        }
+      }
+      catch (error) {
+        this.crashed = true;
+        this.emit('job:crash', { reason: error.stack });
+      }
+      if (result instanceof Promise) {
+        result.then(actualResult => {
+          this.returned = true;
+          actualResult = ensureJsonStringifyable(actualResult, 'Unable to format result of test() as JSON');
+          this.emit('job:return', { result: actualResult });
+        }).catch(rejectionReason => {
+          this.crashed = true;
+          if (rejectionReason instanceof Error) {
+            rejectionReason = rejectionReason.stack;
+          }
+          rejectionReason = ensureJsonStringifyable(rejectionReason, 'Unable to format Promise rejection reason of test() as JSON');
+          this.emit('job:crash', { reason: rejectionReason });
+        });
+      }
+    };
+    contain();
+    // });
   }
 
   emitFullState() {
@@ -95,6 +132,7 @@ class Job {
   get state() {
     return {
       failed: this.failed,
+      crashed: this.crashed,
       timedOut: this.timedOut,
       ended: this.ended,
       returned: this.returned,
@@ -191,6 +229,7 @@ class Runner extends EventEmitter {
   }
 
   receiveMessage(message) {
+    // console.log('CMD message:', message);
     if (! 'eventName' in message) {
       console.error('Can not process IPC message without `eventName` field:', message);
       return;
@@ -241,11 +280,13 @@ class Runner extends EventEmitter {
   }
 
   listJobs() {
-    const jobList = {}
+    const jobList = {};
     for (const [jobId, job] of this.jobs) {
-      jobList[jobId] = job.shortState;
+      // console.log('DEBUG this.jobs LOOP', jobId, job.state);
+      jobList[jobId] = job.state;
     }
-    this.emitMessage('runner:jobList', jobList);
+    // console.log('DEBUG this.jobs', this.jobs);
+    this.emitMessage('runner:jobList', { jobList });
   }
 
   getJobFullState(jobId) {
