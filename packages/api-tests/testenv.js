@@ -23,7 +23,7 @@ const {
   getBalanceForAssetId, hexdump, removeHexPrefix
 } = require('./util.js');
 
-const { test_config: config } = require('./cli-options.js');
+const { test_config: config, parallel } = require('./cli-options.js');
 
 let webhooks;
 
@@ -71,7 +71,7 @@ module.exports = {
   UpvestTenancyAPI, UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token,
   inspect, inspectResponse, inspectError, readlineQuestionPromise,
   getBalanceForAssetId, hexdump, removeHexPrefix,
-  config,
+  config, parallel,
   getWebhooks, getWebhookRecording,
   tenancy,
   getClienteleAPI,
