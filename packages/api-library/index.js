@@ -1,6 +1,6 @@
 
 
-async function* genericList(pageSize, path) {
+async function* genericList(pageSize, path, client) {
   let cursor = null;
   do {
     const params = {};
@@ -12,7 +12,7 @@ async function* genericList(pageSize, path) {
     }
     let response;
     try {
-      response = await this.client.get(path, {params});
+      response = await client.get(path, {params});
     }
     catch (error) {
       console.log(`Caught error while trying to get ${path} list.`);
@@ -49,7 +49,7 @@ class AssetsEndpoint {
   }
 
   async* list(pageSize) {
-    genericList(pageSize, 'assets/')
+    yield* genericList(pageSize, 'assets/', this.client);
   }
 
   async retrieve(id) {
@@ -75,7 +75,7 @@ class WalletsEndpoint {
   }
 
   async* list(pageSize) {
-    genericList(pageSize, 'kms/wallets/')
+    yield* genericList(pageSize, 'kms/wallets/', this.client);
   }
 
   async retrieve(id) {
@@ -103,8 +103,8 @@ class TransactionsEndpoint {
     return response.data;
   }
 
-  async* list(pageSize, walletId) {
-    genericList(pageSize, `kms/wallets/${walletId}/transactions/`)
+  async* list(walletId, pageSize) {
+    yield* genericList(pageSize, `kms/wallets/${walletId}/transactions/`, this.client);
   }
 
   async retrieve(walletId, transactionId) {
