@@ -49,18 +49,18 @@ class WebhookListener {
       message.ack();
       const msgData = JSON.parse(message.data);
 
-      const body = msgData.bodyIsHex ? Buffer.fromString(msgData.body, 'hex') : msgData.body;
-      const rawHeaders = msgData.headers;
-      const simpleHeaders = {};
-      for (const [headerName, headerValue] of rawHeaders) {
-        simpleHeaders[headerName] = headerValue;
+      if ((! 'webhookId' in msgData) || (msgData.webhookId != this.webhookConfig.webhookId)) {
+        // Only process messages that where meant for our tenant.
+        return;
       }
+
+      const body = msgData.bodyIsHex ? Buffer.fromString(msgData.body, 'hex') : msgData.body;
 
       const metaData = {
         pubsubMessageId: message.id,
       };
 
-      this._processRecordings(body, simpleHeaders, rawHeaders, metaData);
+      this._processRecordings(body, msgData.headers, msgData.rawHeaders, metaData);
     });
 
     this.finalizeCallbacks.add(() => {
