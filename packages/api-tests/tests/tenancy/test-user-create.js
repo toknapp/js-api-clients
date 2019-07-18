@@ -9,7 +9,7 @@ test('Testing users.create()', async function (t) {
   const user = await partials.tCreateUser(t, testenv.tenancy);
   if (! user.username) return;
 
-  await partials.tIsRecoveryKitValid(t, user.recoverykit);
+  partials.tIsRecoveryKitValid(t, user.recoverykit);
 
   t.notOk(user.wallet_ids, 'No wallet IDs for newly created user because no asset IDs requested.');
 

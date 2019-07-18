@@ -19,7 +19,7 @@ test('Testing users.create() with wallet creation', async function (t) {
 
   t.equal(wallet_ids.length, assetIds.length - 1, 'Number of wallets created is one less than number of requested assets because ETH and ERC20 get combined in 1 wallet.');
 
-  await partials.tIsRecoveryKitValid(t, recoverykit);
+  partials.tIsRecoveryKitValid(t, recoverykit);
 
   t.end();
 });

@@ -274,7 +274,7 @@ const tWaitForBalanceUpdate = async (t, api, walletId, assetId, previousBalanceA
   return previousBalanceAmount;
 };
 
-const tIsRecoveryKitValid = async (t, recoverykit) => {
+const tIsRecoveryKitValid = (t, recoverykit) => {
   const isRecoveryKitValidXml = (xmlParser.validate(recoverykit) === true);
   t.ok(isRecoveryKitValidXml, 'Recovery Kit is valid XML');
   if (isRecoveryKitValidXml) {
