@@ -101,9 +101,9 @@ class WebhookRecording {
     this.allMatchedCallbacks = new Set();
   }
 
-  addRecord(record) {
+  async addRecord(record) {
     this.records.push(record);
-    this._matchRecord(record);
+    await this._matchRecord(record);
     if (this._areAllMatchersSatisfied()) {
       this.allMatchedCallbacks.forEach(allMatchedCallback => allMatchedCallback());
     }
@@ -113,13 +113,18 @@ class WebhookRecording {
     this.matchers.set(matcher, false);
   }
 
-  _matchRecord(record) {
-    this.matchers.forEach((previousResult, matcher) => {
-      if (! previousResult && ! record.wasMatched && matcher(record.body, record.simpleHeaders, record.rawHeaders, record.metaData)) {
-        this.matchers.set(matcher, true); // Let each matcher match only once.
-        record.wasMatched = true; // Match each record only once.
+  async _matchRecord(record) {
+    for (const [matcher, previousResult] of this.matchers.entries()) {
+      if (! previousResult && ! record.wasMatched) {
+        let result = matcher(record.body, record.simpleHeaders, record.rawHeaders, record.metaData);
+        // Allow for both `async` and non-`async` matcher functions:
+        result = result instanceof Promise ? await result : result;
+        if (result) {
+          this.matchers.set(matcher, true); // Let each matcher match only once.
+          record.wasMatched = true; // Match each record only once.
+        }
       }
-    })
+    }
   }
 
   _areAllMatchersSatisfied() {
