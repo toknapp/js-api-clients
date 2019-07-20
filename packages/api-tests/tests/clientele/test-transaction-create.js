@@ -8,6 +8,21 @@ const { test, inspect, int2BN } = testenv;
 let faucet = null;
 let faucetConfig;
 
+const protocolToEtherscanSubDomainPrefix = new Map([
+  ['ethereum_ropsten', 'ropsten.'],
+  ['ethereum_kovan', 'kovan.'],
+  ['ethereum', ''],
+]);
+
+const getTxEtherscanUrl = (wallet, txhash) => {
+  const etherscanSubDomainPrefix = protocolToEtherscanSubDomainPrefix.get(wallet.protocol) || '';
+  return `https://${etherscanSubDomainPrefix}etherscan.io/tx/${txhash}`;
+}
+
+const getAddressEtherscanUrl = (wallet) => {
+  const etherscanSubDomainPrefix = protocolToEtherscanSubDomainPrefix.get(wallet.protocol) || '';
+  return `https://${etherscanSubDomainPrefix}etherscan.io/address/${wallet.address}`;
+}
 
 async function testTransactionsWithFaucet(t) {
   if (! faucet) {
@@ -40,6 +55,7 @@ async function testTransactionsWithFaucet(t) {
       let tx;
       let currentEthBalanceAmount;
       let currentErc20BalanceAmount;
+      let faucetResults;
 
       // Only test Tx creation for ETH and ERC20.
       const protocolNamesToTestTxWith = [
@@ -52,6 +68,7 @@ async function testTransactionsWithFaucet(t) {
       }
 
       t.comment('Inspecting listed wallet:');
+      t.comment(getAddressEtherscanUrl(wallet));
       inspect(wallet);
       let ethBalance = testenv.getBalanceForAssetId(wallet, faucetConfig.eth.assetId);
       if (ethBalance) {
@@ -66,7 +83,11 @@ async function testTransactionsWithFaucet(t) {
       t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(0)), 'Initial ERC20 Balance is 0');
 
       t.comment('Faucet *only* ERC20 tokens to the new wallet. This is done to trigger an auxilliary service, which will cover the gas cost.');
-      inspect('Faucet results:', await faucet.run(wallet.address, int2BN(0), int2BN(faucetConfig.erc20.amount), t.comment));
+      faucetResults = await faucet.run(wallet.address, int2BN(0), int2BN(faucetConfig.erc20.amount), t.comment);
+      for (const faucetResult of faucetResults) {
+        t.comment(getTxEtherscanUrl(wallet, faucetResult.transactionHash));
+      }
+      inspect('Faucet results:', faucetResults);
 
       currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount);
       t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(faucetConfig.erc20.amount)), 'ERC20 Balance now equals faucet amount');
@@ -86,6 +107,7 @@ async function testTransactionsWithFaucet(t) {
         return partials.tErrorFail(t, error, 'Creating the ERC20-only transaction failed.');
       }
       t.comment('Inspecting result of ERC20-only transaction creation:');
+      t.comment(getTxEtherscanUrl(wallet, tx.txhash));
       inspect(tx);
 
       // We have to keep track here because potentially, the external gas funding might have left some "dust".
@@ -124,7 +146,11 @@ async function testTransactionsWithFaucet(t) {
         )
       );
 
-      inspect('Faucet results:', await faucet.run(wallet.address, totalEthFaucetAmount, int2BN(faucetConfig.erc20.amount), t.comment));
+      faucetResults = await faucet.run(wallet.address, totalEthFaucetAmount, int2BN(faucetConfig.erc20.amount), t.comment);
+      for (const faucetResult of faucetResults) {
+        t.comment(getTxEtherscanUrl(wallet, faucetResult.transactionHash));
+      }
+      inspect('Faucet results:', faucetResults);
       faucet.disconnect();
 
       currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount);
@@ -160,6 +186,7 @@ async function testTransactionsWithFaucet(t) {
         return partials.tErrorFail(t, error, 'Creating the ETH transaction failed.');
       }
       t.comment('Inspecting result of ETH transaction creation:');
+      t.comment(getTxEtherscanUrl(wallet, tx.txhash));
       inspect(tx);
 
       currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount);
@@ -191,6 +218,7 @@ async function testTransactionsWithFaucet(t) {
         return partials.tErrorFail(t, error, 'Creating the ERC20 transaction failed.');
       }
       t.comment('Inspecting result of ERC20 transaction creation:');
+      t.comment(getTxEtherscanUrl(wallet, tx.txhash));
       inspect(tx);
 
       // TODO check if ETH Balance decreased by fee of ERC20 tx.
