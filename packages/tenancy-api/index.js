@@ -3,7 +3,10 @@ const axios = require('axios');
 const { APIKeyAxiosInterceptor } = require('./authentication/api-key/axios-interceptor.js');
 const { APIKeyDebugger } = require('./authentication/api-key/debugger.js');
 
-const { AssetsEndpoint, WalletsEndpoint, TransactionsEndpoint, SignaturesEndpoint } = require('@upvest/api-library');
+const {
+  AssetsEndpoint, WalletsEndpoint, TransactionsEndpoint, SignaturesEndpoint,
+  genericList, defaultListErrorHandler,
+} = require('@upvest/api-library');
 
 
 class UpvestTenancyAPI {
@@ -93,45 +96,7 @@ class UsersEndpoint {
   }
 
   async* list(pageSize) {
-    let cursor = null;
-    do {
-      const params = {};
-      if (cursor) {
-        params['cursor'] = cursor;
-      }
-      if (pageSize) {
-        params['page_size'] = pageSize;
-      }
-      let response;
-      try {
-        response = await this.client.get('tenancy/users/', {params});
-      }
-      catch (error) {
-        console.log('Caught error while trying to get user list.');
-        if ('response' in error) {
-          console.dir(error.response.config.url, {depth:null, colors:true});
-          console.dir(error.response.config.headers, {depth:null, colors:true});
-          console.dir(error.response.status, {depth:null, colors:true});
-          console.dir(error.response.data, {depth:null, colors:true});
-        }
-        else {
-          console.log('Caught error without response:');
-          console.dir(error, {depth:null, colors:true});
-        }
-        return; // Stop iteration.
-      }
-      for (const result of response.data.results) {
-        yield result;
-      }
-      if (response.data.next != null) {
-        let nextUrl = new URL(response.data.next);
-        cursor = nextUrl.searchParams.get('cursor');
-        // TODO Figure out how to use the whole URL in `next` instead of this parsing.
-      }
-      else {
-        cursor = null;
-      }
-    } while (cursor != null);
+    yield* genericList('tenancy/users/', this.client, pageSize);
   }
 
   async retrieve(username) {

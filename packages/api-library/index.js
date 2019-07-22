@@ -1,6 +1,25 @@
 
 
-async function* genericList(pageSize, path, client) {
+function defaultListErrorHandler(error, path) {
+  console.log(`Caught error while trying to get ${path} list.`);
+  if ('response' in error) {
+    console.dir(error.response.config.url, {depth:null, colors:true});
+    console.dir(error.response.config.headers, {depth:null, colors:true});
+    console.dir(error.response.status, {depth:null, colors:true});
+    console.dir(error.response.data, {depth:null, colors:true});
+  }
+  else {
+    console.log('Caught error without response:');
+    console.dir(error, {depth:null, colors:true});
+  }
+  return;
+}
+
+
+async function* genericList(path, client, pageSize, errorHandler) {
+  if (! errorHandler) {
+    errorHandler = defaultListErrorHandler;
+  }
   let cursor = null;
   do {
     const params = {};
@@ -15,18 +34,7 @@ async function* genericList(pageSize, path, client) {
       response = await client.get(path, {params});
     }
     catch (error) {
-      console.log(`Caught error while trying to get ${path} list.`);
-      if ('response' in error) {
-        console.dir(error.response.config.url, {depth:null, colors:true});
-        console.dir(error.response.config.headers, {depth:null, colors:true});
-        console.dir(error.response.status, {depth:null, colors:true});
-        console.dir(error.response.data, {depth:null, colors:true});
-      }
-      else {
-        console.log('Caught error without response:');
-        console.dir(error, {depth:null, colors:true});
-      }
-      return;
+      return defaultListErrorHandler(error, path);
     }
     for (const result of response.data.results) {
       yield result;
@@ -49,7 +57,7 @@ class AssetsEndpoint {
   }
 
   async* list(pageSize) {
-    yield* genericList(pageSize, 'assets/', this.client);
+    yield* genericList('assets/', this.client, pageSize);
   }
 
   async retrieve(id) {
@@ -75,7 +83,7 @@ class WalletsEndpoint {
   }
 
   async* list(pageSize) {
-    yield* genericList(pageSize, 'kms/wallets/', this.client);
+    yield* genericList('kms/wallets/', this.client, pageSize);
   }
 
   async retrieve(id) {
@@ -104,7 +112,7 @@ class TransactionsEndpoint {
   }
 
   async* list(walletId, pageSize) {
-    yield* genericList(pageSize, `kms/wallets/${walletId}/transactions/`, this.client);
+    yield* genericList(`kms/wallets/${walletId}/transactions/`, this.client, pageSize);
   }
 
   async retrieve(walletId, transactionId) {
@@ -137,5 +145,7 @@ module.exports = {
   AssetsEndpoint,
   WalletsEndpoint,
   TransactionsEndpoint,
-  SignaturesEndpoint
+  SignaturesEndpoint,
+  genericList,
+  defaultListErrorHandler,
 };
