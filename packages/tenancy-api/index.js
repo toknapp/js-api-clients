@@ -101,18 +101,18 @@ class UsersEndpoint {
 
   async retrieve(username) {
     const params = {};
-    const response = await this.client.get(`tenancy/users/${username}`, params);
+    const response = await this.client.get(`tenancy/users/${encodeURIComponent(username)}`, params);
     return response.data;
   }
 
   async updatePassword(username, oldPassword, newPassword) {
     const data = {old_password:oldPassword, new_password:newPassword};
-    const response = await this.client.patch(`tenancy/users/${username}`, data);
+    const response = await this.client.patch(`tenancy/users/${encodeURIComponent(username)}`, data);
     return response.status == 200;
   }
 
   async delete(username) {
-    const response = await this.client.delete(`tenancy/users/${username}`);
+    const response = await this.client.delete(`tenancy/users/${encodeURIComponent(username)}`);
     return response.status == 204;
   }
 }
