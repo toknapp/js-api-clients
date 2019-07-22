@@ -76,7 +76,7 @@ test('Testing users.updatePassword()', async function (t) {
   webhookRecording.stop();
 
   // In case no webhook setup is configured.
-  partials.tWaitForWalletActivation(t, testenv.tenancy);
+  await partials.tWaitForWalletActivation(t, testenv.getClienteleAPI(username, newPassword));
 
   try {
     echo = await testenv.getClienteleAPI(username, password).echo('all good');
