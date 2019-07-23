@@ -10,8 +10,17 @@ const xmlParser = require('fast-xml-parser');
 const testenv = require('./testenv.js');
 
 const {
-  inspect, inspectResponse, inspectError, readlineQuestionPromise, getBalanceForAssetId
+  inspect, inspectResponse, inspectError, readlineQuestionPromise, getBalanceForAssetId, removeHexPrefix
 } = require('./util.js');
+
+// For Ethereum signature
+const { keccak256 } = require('web3-utils');
+const EC = require('elliptic').ec;
+
+const CURVE = 'secp256k1';
+
+// Create and initialize EC context (better do it once and reuse it)
+const ec = new EC(CURVE);
 
 
 const tErrorFail = (t, error, message) => {
@@ -295,8 +304,79 @@ const tIsRecoveryKitValid = (t, recoverykit) => {
 };
 
 
+async function tEthereumSigning(t, api, wallet, password) {
+  t.comment('Generate signature for Ethereum (or Erc20) wallet.')
+
+  // Only test Tx creation for ETH and ERC20.
+  const protocolNamesToTestWith = [
+    'ethereum', 'erc20',
+    'ethereum_ropsten', 'erc20_ropsten',
+    'ethereum_kovan', 'erc20_kovan',
+  ];
+  if (-1 === protocolNamesToTestWith.indexOf(wallet.protocol)) {
+    t.fail('Can not do Ethereum signature test with non-Ethereum wallet.');
+  }
+
+  const toSign = crypto.randomBytes(32).toString('hex');
+  t.comment('Inspecting the payload/hash to be signed:');
+  inspect(toSign);
+
+  t.comment('Create signature.');
+  let sig;
+  try {
+    sig = await api.signatures.sign(
+      wallet.id,
+      password,
+      toSign,
+      'hex',
+      'hex'
+    );
+  }
+  catch (error) {
+    return tErrorFail(t, error, 'Creating the signature failed.');
+  }
+  t.comment('Inspecting signature:');
+  inspect(sig);
+
+  t.equal(sig['big_number_format'], 'hex', 'Signature output format is hexadecimal.');
+  t.equal(sig['algorithm'], 'ECDSA', 'Signature algorithm is ECDSA');
+  t.equal(sig['curve'], CURVE, `Signature uses the "${CURVE}" curve.`);
+
+  // Pseudocode for checking an Ethereum wallet address against public key:
+  // `lowercase(address) == lowercase(hex(takeLastTwentyBytes(keccak256(concat(pad32(pubkey.x), pad32(pubkey.y))))))`
+
+  const pubKeyXPadded = removeHexPrefix(sig['public_key']['x']).padStart(64, '0');
+  const pubKeyYPadded = removeHexPrefix(sig['public_key']['y']).padStart(64, '0');
+  const pubKeyHex = '0x' + pubKeyXPadded + pubKeyYPadded;
+  // t.comment('Inspecting pubKeyHex:');
+  // inspect(pubKeyHex);
+
+  const addressHash = keccak256(pubKeyHex);
+  // t.comment('Inspecting addressHash:');
+  // inspect(addressHash, addressHash.slice(-40));
+
+  t.equal('0x' + addressHash.slice(-40).toLowerCase(), wallet.address.toLowerCase(), 'Last 20 bytes of keccak256 hash of the public key are the Ethereum address.')
+
+  // Import public key
+  const publicKey = ec.keyFromPublic(
+    {
+      x: removeHexPrefix(sig['public_key']['x']),
+      y: removeHexPrefix(sig['public_key']['y']),
+    },
+    'hex'
+  );
+
+  // Verify signature
+  t.ok(publicKey.verify(toSign, {
+    r: removeHexPrefix(sig['r']),
+    s: removeHexPrefix(sig['s']),
+  }), 'Signature can be verified');
+}
+
+
 module.exports = {
   tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho, tCreateWallets,
   tWaitForWalletActivation, tWaitForBalanceUpdate, tIsRecoveryKitValid,
+  tEthereumSigning,
   setTimeoutPromise,
 };

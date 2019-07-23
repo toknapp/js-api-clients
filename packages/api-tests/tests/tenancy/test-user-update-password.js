@@ -75,8 +75,10 @@ test('Testing users.updatePassword()', async function (t) {
 
   webhookRecording.stop();
 
+  const newClientele = testenv.getClienteleAPI(username, newPassword);
+
   // In case no webhook setup is configured.
-  await partials.tWaitForWalletActivation(t, testenv.getClienteleAPI(username, newPassword));
+  await partials.tWaitForWalletActivation(t, newClientele);
 
   try {
     echo = await testenv.getClienteleAPI(username, password).echo('all good');
@@ -88,8 +90,32 @@ test('Testing users.updatePassword()', async function (t) {
   }
 
   t.comment('See if OAuth2 with new password works.');
-  echoSuccess = await partials.tEcho(t, testenv.getClienteleAPI(username, newPassword));
+  echoSuccess = await partials.tEcho(t, newClientele);
   if (! echoSuccess) return;
+
+  t.comment('Test signing with new password.');
+  let signCount = 0;
+  for (const walletId of wallet_ids) {
+    const wallet = await newClientele.wallets.retrieve(walletId);
+
+    inspect(wallet);
+
+    // Only test Tx creation for ETH and ERC20.
+    const protocolNamesToTestWith = [
+      'ethereum', 'erc20',
+      'ethereum_ropsten', 'erc20_ropsten',
+      'ethereum_kovan', 'erc20_kovan',
+    ];
+    if (-1 === protocolNamesToTestWith.indexOf(wallet.protocol)) {
+      continue;
+    }
+
+    await partials.tEthereumSigning(t, newClientele, wallet, newPassword);
+    signCount++;
+  }
+
+  t.ok(signCount > 0, 'At least one signature was tested.');
+
 
   t.end();
 });
