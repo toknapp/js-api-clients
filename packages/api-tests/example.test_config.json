@@ -48,7 +48,8 @@
         "assetId": "deaaa6bf-d944-57fa-8ec4-2dd45d1f5d3f"
       },
       "confirmationThreshold": 4,
-      "gasPrice": 3.5e9
+      "gasPrice": 3.5e9,
+      "balanceUpdateWaitMinutes": 4
     }
   }
 }

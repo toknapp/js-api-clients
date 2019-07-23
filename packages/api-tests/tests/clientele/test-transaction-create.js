@@ -35,7 +35,8 @@ async function testTransactionsWithFaucet(t) {
   // connection of the faucet. Without disconnecting, the Nodejs process would
   // stay alive beyond test completion.
   try {
-
+    // Allow 0 to turn off waiting for balance updates.
+    const BALANCE_UPDATE_WAIT_MINUTES = (typeof faucetConfig.balanceUpdateWaitMinutes == 'number') ? faucetConfig.balanceUpdateWaitMinutes : 4;
 
     const { username, password } = await partials.tCreateUser(t, testenv.tenancy);
     if (! username) return;
@@ -89,8 +90,10 @@ async function testTransactionsWithFaucet(t) {
       }
       inspect('Faucet results:', faucetResults);
 
-      currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount);
-      t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(faucetConfig.erc20.amount)), 'ERC20 Balance now equals faucet amount');
+      if (BALANCE_UPDATE_WAIT_MINUTES) {
+        currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
+        t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(faucetConfig.erc20.amount)), 'ERC20 Balance now equals faucet amount');
+      }
 
       t.comment('Create ERC20-only transaction with external gas funding.');
       try {
@@ -112,13 +115,14 @@ async function testTransactionsWithFaucet(t) {
 
       // We have to keep track here because potentially, the external gas funding might have left some "dust".
       // But we can not assert any specific value for that "dust", it could even be "0 dust".
-      currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount);
-      inspect(`ETH Balance after ERC20 Tx with external gas funding (i.e. "dust") == ${currentEthBalanceAmount}`);
+      if (BALANCE_UPDATE_WAIT_MINUTES) {
+        currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
+        inspect(`ETH Balance after ERC20 Tx with external gas funding (i.e. "dust") == ${currentEthBalanceAmount}`);
 
-      currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount);
-      t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(0)), 'ERC20 Balance now back to 0');
-      // inspect(`ERC20 Balance after ERC20 Tx == ${currentErc20BalanceAmount}`);
-
+        currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
+        t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(0)), 'ERC20 Balance now back to 0');
+        // inspect(`ERC20 Balance after ERC20 Tx == ${currentErc20BalanceAmount}`);
+      }
 
       const preEthFaucetEthBalanceAmount = currentEthBalanceAmount;
       t.comment(`Faucet some ETH and some ERC20 tokens to the new wallet.`);
@@ -153,20 +157,22 @@ async function testTransactionsWithFaucet(t) {
       inspect('Faucet results:', faucetResults);
       faucet.disconnect();
 
-      currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount);
-      t.comment('See if ETH Balance did increase by faucet amount');
-      inspect({
-        preEthFaucetEthBalanceAmount,
-        currentEthBalanceAmount,
-        increasedBy: int2BN(currentEthBalanceAmount).sub(int2BN(preEthFaucetEthBalanceAmount)).toString(10),
-        totalEthFaucetAmount: totalEthFaucetAmount.toString(10),
-      });
-      // // Deactivated for now because gas funding is not precise.
-      // // TODO Get "second opinion" from other blockchain service, to compare with.
-      // t.ok(int2BN(currentEthBalanceAmount).sub(int2BN(preEthFaucetEthBalanceAmount)).eq(totalEthFaucetAmount), 'ETH Balance did increase by faucet amount');
+      if (BALANCE_UPDATE_WAIT_MINUTES) {
+        currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
+        t.comment('See if ETH Balance did increase by faucet amount');
+        inspect({
+          preEthFaucetEthBalanceAmount,
+          currentEthBalanceAmount,
+          increasedBy: int2BN(currentEthBalanceAmount).sub(int2BN(preEthFaucetEthBalanceAmount)).toString(10),
+          totalEthFaucetAmount: totalEthFaucetAmount.toString(10),
+        });
+        // // Deactivated for now because gas funding is not precise.
+        // // TODO Get "second opinion" from other blockchain service, to compare with.
+        // t.ok(int2BN(currentEthBalanceAmount).sub(int2BN(preEthFaucetEthBalanceAmount)).eq(totalEthFaucetAmount), 'ETH Balance did increase by faucet amount');
 
-      currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount);
-      t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(faucetConfig.erc20.amount)), 'ERC20 Balance now equals faucet amount');
+        currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
+        t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(faucetConfig.erc20.amount)), 'ERC20 Balance now equals faucet amount');
+      }
 
       const preEthTxEthBalanceAmount = currentEthBalanceAmount;
       t.comment('Create ETH transaction with user gas funding.');
@@ -189,19 +195,21 @@ async function testTransactionsWithFaucet(t) {
       t.comment(getTxEtherscanUrl(wallet, tx.txhash));
       inspect(tx);
 
-      currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount);
-      t.comment('See if ETH Balance did decrease by tx amount & fee');
-      inspect({
-        preEthTxEthBalanceAmount,
-        currentEthBalanceAmount,
-        decreasedBy: int2BN(currentEthBalanceAmount).sub(int2BN(preEthFaucetEthBalanceAmount)).toString(10),
-        ethTxAmount: ethTxAmount.toString(10),
-        ethTxFee: ethTxFee.toString(10),
-        "ethTx(Amount+Fee)": ethTxAmount.add(ethTxFee).toString(10),
-      });
-      // // Deactivated for now because gas funding is not precise.
-      // // TODO Get "second opinion" from other blockchain service, to compare with.
-      // t.ok(int2BN(currentEthBalanceAmount).sub(int2BN(preEthTxEthBalanceAmount)).eq(ethTxAmount.add(ethTxFee)), 'ETH Balance did decrease by tx amount & fee');
+      if (BALANCE_UPDATE_WAIT_MINUTES) {
+        currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
+        t.comment('See if ETH Balance did decrease by tx amount & fee');
+        inspect({
+          preEthTxEthBalanceAmount,
+          currentEthBalanceAmount,
+          decreasedBy: int2BN(currentEthBalanceAmount).sub(int2BN(preEthFaucetEthBalanceAmount)).toString(10),
+          ethTxAmount: ethTxAmount.toString(10),
+          ethTxFee: ethTxFee.toString(10),
+          "ethTx(Amount+Fee)": ethTxAmount.add(ethTxFee).toString(10),
+        });
+        // // Deactivated for now because gas funding is not precise.
+        // // TODO Get "second opinion" from other blockchain service, to compare with.
+        // t.ok(int2BN(currentEthBalanceAmount).sub(int2BN(preEthTxEthBalanceAmount)).eq(ethTxAmount.add(ethTxFee)), 'ETH Balance did decrease by tx amount & fee');
+      }
 
       t.comment('Create ERC20 transaction with user gas funding.');
       try {
@@ -221,10 +229,12 @@ async function testTransactionsWithFaucet(t) {
       t.comment(getTxEtherscanUrl(wallet, tx.txhash));
       inspect(tx);
 
-      // TODO check if ETH Balance decreased by fee of ERC20 tx.
+      if (BALANCE_UPDATE_WAIT_MINUTES) {
+        // TODO check if ETH Balance decreased by fee of ERC20 tx.
 
-      currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount);
-      t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(0)), 'ERC20 Balance now back to 0');
+        currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
+        t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(0)), 'ERC20 Balance now back to 0');
+      }
     }
 
   }
