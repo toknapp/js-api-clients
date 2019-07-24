@@ -40,7 +40,7 @@ const tGetCachedOrCreateUser = async (t, tenancy) => {
   return tenancy._cachedUser;
 };
 
-const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds) => {
+const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds, rawRecoverykit) => {
   t.comment('Create user.');
   const withAssets = Array.isArray(assetIds) && assetIds.length > 0;
   const username = cryptoRandomString(10);
@@ -54,7 +54,7 @@ const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds) => {
   let user;
   try {
     const before = Date.now();
-    user = await tenancy.users.create(username, password, clientIp, userAgent, assetIds);
+    user = await tenancy.users.create(username, password, clientIp, userAgent, assetIds, false, rawRecoverykit);
     const duration = (Date.now() - before) / 1000;
     t.comment(`Duration of create user: ${duration} seconds`);
   }

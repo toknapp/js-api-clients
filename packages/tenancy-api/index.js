@@ -88,8 +88,8 @@ class UsersEndpoint {
     this.client = client;
   }
 
-  async create(username, password, clientIp, userAgent, assetIds, asynchronously) {
-    const data = {username, password, client_ip:clientIp, user_agent:userAgent, asset_ids:assetIds};
+  async create(username, password, clientIp, userAgent, assetIds, asynchronously, rawRecoverykit) {
+    const data = {username, password, client_ip:clientIp, user_agent:userAgent, asset_ids:assetIds, raw:Boolean(rawRecoverykit)};
     const path = asynchronously ? 'tenancy/user-create-async' : 'tenancy/users/';
     const response = await this.client.post(path, data);
     return response.data;
@@ -109,6 +109,12 @@ class UsersEndpoint {
     const data = {old_password:oldPassword, new_password:newPassword};
     const response = await this.client.patch(`tenancy/users/${encodeURIComponent(username)}`, data);
     return response.status == 200;
+  }
+
+  async recover(seed, seedhash, userId, password) {
+    const data = { seed, seedhash, user_id:userId, password };
+    const response = await this.client.post(`tenancy/recover/`, data);
+    return response.data;
   }
 
   async delete(username) {

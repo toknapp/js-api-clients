@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package co.upvest.recoverykit;
+
+message CipherParams {
+    bytes ephemeralpk = 1;
+    bytes nonce = 2;
+    bytes recipient = 3;
+}
+
+message HashParams {
+    uint32 len = 1;
+    uint32 m = 2;
+    uint32 p = 3;
+    bytes salt = 4;
+    uint32 t = 5;
+    uint32 v = 6;
+}
+
+message Seed {
+    string cipher = 1;
+    CipherParams cipherparams = 2;
+    bytes ciphertext = 3;
+    bytes hash = 4;
+    string hashfunction = 5;
+    HashParams hashparams = 6;
+}
+
+message RecoveryKit {
+    Seed seed = 1;
+    string seedhash = 2;
+    string username = 3;
+    int64 datetime = 4;
+    string client_ip = 5;
+    string version = 6;
+    string user_agent = 7;
+    uint32 user_id = 8;
+}

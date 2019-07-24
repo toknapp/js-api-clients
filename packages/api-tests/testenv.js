@@ -25,6 +25,8 @@ const {
 
 const { test_config: config, parallel } = require('./cli-options.js');
 
+const { unpackRecoveryKit } = require('./recoverykit.js');
+
 let webhooks;
 
 const getWebhooks = async () => {
@@ -72,6 +74,7 @@ module.exports = {
   inspect, inspectResponse, inspectError, readlineQuestionPromise,
   getBalanceForAssetId, hexdump, removeHexPrefix, setDifference, setEqual,
   config, parallel,
+  unpackRecoveryKit,
   getWebhooks, getWebhookRecording,
   tenancy,
   getClienteleAPI,
