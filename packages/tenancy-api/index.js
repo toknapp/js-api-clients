@@ -89,9 +89,16 @@ class UsersEndpoint {
   }
 
   async create(username, password, clientIp, userAgent, assetIds, asynchronously, rawRecoverykit) {
-    const data = {username, password, client_ip:clientIp, user_agent:userAgent, asset_ids:assetIds, raw:Boolean(rawRecoverykit)};
-    const path = asynchronously ? 'tenancy/user-create-async' : 'tenancy/users/';
-    const response = await this.client.post(path, data);
+    const data = {
+      username,
+      password,
+      client_ip: clientIp,
+      user_agent: userAgent,
+      asset_ids: assetIds,
+      raw: Boolean(rawRecoverykit),
+      "async": Boolean(asynchronously),
+    };
+    const response = await this.client.post('tenancy/users/', data);
     return response.data;
   }
 
