@@ -45,6 +45,24 @@ const inspectError = error => {
   if (error.response) {
     inspectResponse(error.response);
   }
+  else if (error.errno || error.code) {
+    const summary = {
+      errno: error.errno,
+      code: error.code,
+      syscall: error.syscall,
+    };
+    if (error.config) {
+      summary['request'] = {
+        timeout: error.config.timeout,
+        method: error.config.method,
+        url: error.config.url,
+        queryParams: error.config.params,
+        headers: error.config.headers,
+        jsonBody: error.config.data,
+      };
+    }
+    inspect(summary);
+  }
   else {
     inspect(error);
   }

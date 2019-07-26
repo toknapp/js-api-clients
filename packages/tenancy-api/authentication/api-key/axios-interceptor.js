@@ -71,6 +71,9 @@ class APIKeyAxiosInterceptor {
     config.headers['X-UP-API-Timestamp'] = timestamp;
     config.headers['X-UP-API-Signed-Path'] = signedPath;
     config.headers['X-UP-API-Signature'] = signature;
+    if (config.requestId) {
+      config.headers['X-UP-API-Request-ID'] = config.requestId;
+    }
 
     return config;
   }

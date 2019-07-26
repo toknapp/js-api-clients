@@ -34,15 +34,20 @@ class UpvestTenancyAPI {
     );
   }
 
-  async echo(what) {
+  async time(requestId) {
+    const response = await this.client.get('time/', {requestId});
+    return response.data;
+  }
+
+  async echo(what, requestId) {
     const data = {echo: what};
-    const response = await this.client.post('tenancy/echo-signed', data);
+    const response = await this.client.post('tenancy/echo-signed', data, {requestId});
     return response.data.echo;
   }
 
-  async echoGet(what) {
+  async echoGet(what, requestId) {
     const data = {echo: what};
-    const response = await this.client.get('tenancy/echo-signed', {params:data});
+    const response = await this.client.get('tenancy/echo-signed', {params:data, requestId});
     return response.data.echo;
   }
 
@@ -88,7 +93,7 @@ class UsersEndpoint {
     this.client = client;
   }
 
-  async create(username, password, clientIp, userAgent, assetIds, asynchronously, rawRecoverykit) {
+  async create(username, password, clientIp, userAgent, assetIds, asynchronously, rawRecoverykit, requestId) {
     const data = {
       username,
       password,
@@ -98,7 +103,7 @@ class UsersEndpoint {
       raw: Boolean(rawRecoverykit),
       "async": Boolean(asynchronously),
     };
-    const response = await this.client.post('tenancy/users/', data);
+    const response = await this.client.post('tenancy/users/', data, {requestId});
     return response.data;
   }
 
