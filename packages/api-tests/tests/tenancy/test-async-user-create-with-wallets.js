@@ -41,6 +41,8 @@ test('Testing parallel users.create() with wallet creation', async function (t) 
       partials.tErrorFail(t, err, 'Creating the user failed.');
     }
     const clientLatency = (Date.now() - before) / 1000;
+    // // Some envs have a 'x-envoy-upstream-service-time header, patch the client libs to get the response headers.
+    // const proxyLatency = result.headers ? Number(result.headers['x-envoy-upstream-service-time']) / 1000 : NaN;
     t.comment(`Duration of async create user "${username}" reqId( ${requestId} ): client ${clientLatency} seconds`);
 
     webhookRecording.addMatcher(async (body, simpleHeaders, rawHeaders, metaData) => {
