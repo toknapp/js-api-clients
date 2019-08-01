@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const util = require('util');
 const setTimeoutPromise = util.promisify(setTimeout);
 
+const uuidv4 = require('uuid').v4;
+
 const cryptoRandomString = require('crypto-random-string');
 
 const xmlParser = require('fast-xml-parser');
@@ -143,21 +145,42 @@ const tEcho = async (t, api) => {
   return true;
 };
 
-const tCreateWallets = async (t, api, assetIds, username, password) => {
-  t.comment(`Create wallets for ${assetIds.length} assets.`)
+const tCreateWallets = async (t, api, assetIdsAndIndexes, username, password) => {
+  t.comment(`Create wallets for ${assetIdsAndIndexes.length} assets.`)
 
   const webhookRecording = await testenv.getWebhookRecording();
 
   let createdWallets = [];
-  for (const assetId of assetIds) {
+  for (const assetIdAndMaybeIndex of assetIdsAndIndexes) {
+    let assetId;
+    let index;
+    if (typeof assetIdAndMaybeIndex == 'string') {
+      assetId = assetIdAndMaybeIndex;
+      index = null;
+    }
+    else if (Array.isArray(assetIdAndMaybeIndex)) {
+      assetId = assetIdAndMaybeIndex[0];
+      index = assetIdAndMaybeIndex[1];
+    }
+    else if ('assetId' in assetIdAndMaybeIndex && 'index' in assetIdAndMaybeIndex) {
+      assetId = assetIdAndMaybeIndex['assetId'];
+      index = assetIdAndMaybeIndex['index'];
+    }
+    else {
+      throw Error(`Can not understand assetId and/or index in ${assetIdAndMaybeIndex}.`);
+    }
+
+    const requestId = uuidv4();
+
+    t.comment(`About to create wallet for assetId ${assetId}, index ${index}. reqId( ${requestId} )`)
     let wallet;
     try {
-      wallet = await api.wallets.create(assetId, password, null);
+      wallet = await api.wallets.create(assetId, password, index, requestId);
     }
     catch (error) {
-      return tErrorFail(t, error, `Creating the wallet for assetId ${assetId} failed.`);
+      return tErrorFail(t, error, `Creating the wallet for assetId ${assetId} and index ${index} failed. reqId( ${requestId} )`);
     }
-    // t.comment('Inspecting created wallet:');
+    // t.comment(`Inspecting created wallet: reqId( ${requestId} )`);
     // inspect(wallet);
 
     webhookRecording.addMatcher((body, simpleHeaders, rawHeaders, metaData) => {
@@ -179,7 +202,10 @@ const tCreateWallets = async (t, api, assetIds, username, password) => {
       const hmac = crypto.createHmac('sha256', testenv.config.webhook.hmacKey).update(body, 'utf8').digest('hex');
       t.equal(signatureHeader, 'sha256=' + hmac, 'Webhook HMAC signature matches');
 
-      t.notEqual(webhookPayload.data.address.length, 0, `Received webhook with wallet address for Wallet ID ${wallet.id}.`);
+      t.notEqual(webhookPayload.data.address.length, 0, `Received webhook with wallet address for Wallet ID ${wallet.id}. addr( ${webhookPayload.data.address} )`);
+
+      // t.comment('Inspect incoming webhook:');
+      // inspect(simpleHeaders, body);
 
       return true;
     });

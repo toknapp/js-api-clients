@@ -73,12 +73,13 @@ class WalletsEndpoint {
     this.client = client;
   }
 
-  async create(assetId, password) {
+  async create(assetId, password, index, requestId) {
     const data = {
       asset_id: assetId,
-      password: password
+      password: password,
+      index: index,
     };
-    const response = await this.client.post('kms/wallets/', data);
+    const response = await this.client.post('kms/wallets/', data, {requestId});
     return response.data;
   }
 
