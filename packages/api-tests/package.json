@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@upvest/api-tests",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "Combined tests for the Upvest Tenancy API and the Upvest Clientele API",
   "scripts": {
     "test": "tape 'tests/**/test*.js'",
@@ -32,8 +32,8 @@
   "homepage": "https://github.com/toknapp/js-api-clients#readme",
   "dependencies": {
     "@google-cloud/pubsub": "^0.28.1",
-    "@upvest/clientele-api": "^0.0.11",
-    "@upvest/tenancy-api": "^0.0.11",
+    "@upvest/clientele-api": "^0.0.12",
+    "@upvest/tenancy-api": "^0.0.12",
     "bn.js": "^4.11.8",
     "clean-webpack-plugin": "^1.0.0",
     "commander": "^2.19.0",
