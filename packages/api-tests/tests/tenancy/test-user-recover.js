@@ -16,8 +16,12 @@ test('Testing users.recover()', async function (t) {
   const { username, password, recoverykit, wallet_ids } = await partials.tCreateUser(t, testenv.tenancy, clientIp, userAgent, assetIds, true);
   if (! username) return;
 
+  // Acquire and keep OAuth2 access token with original password, so that we can
+  // use it to monitor wallet status *while* the password gets changed.
+  const grandfatheredClientele = testenv.getClienteleAPI(username, password)
+
   t.comment('See if OAuth2 with original password works.');
-  echoSuccess = await partials.tEcho(t, testenv.getClienteleAPI(username, password));
+  echoSuccess = await partials.tEcho(t, grandfatheredClientele);
   if (! echoSuccess) return;
 
   const webhookRecording = await testenv.getWebhookRecording();
@@ -79,10 +83,8 @@ test('Testing users.recover()', async function (t) {
 
   webhookRecording.stop();
 
-  const newClientele = testenv.getClienteleAPI(username, newPassword);
-
   // In case no webhook setup is configured.
-  await partials.tWaitForWalletActivation(t, newClientele);
+  await partials.tWaitForWalletActivation(t, grandfatheredClientele);
 
   try {
     echo = await testenv.getClienteleAPI(username, password).echo('all good');
@@ -92,6 +94,8 @@ test('Testing users.recover()', async function (t) {
     t.equal(error.response.status, 401, 'OAuth2 with original password fails with status 401.');
     t.equal(error.response.data.error, 'invalid_grant', 'OAuth2 with original password fails with error code "invalid_grant".');
   }
+
+  const newClientele = testenv.getClienteleAPI(username, newPassword);
 
   t.comment('See if OAuth2 with new password works.');
   echoSuccess = await partials.tEcho(t, newClientele);
