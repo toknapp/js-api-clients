@@ -14,11 +14,6 @@ const examplePassword = 'ex@mp1e p@55w0rd';
 
 const config = {
   "baseURL": "https://api-playground.eu.upvest.co/1.0/",
-  "apikey": {
-    "key": "tPKWL9B_yTgfSToOFJmLyg",
-    "secret": "9O7tLb1ub6qLHZQ00ButDOcfvw9g7Gn8GzFB4WmsUrA",
-    "passphrase": "dlKsARh6U3chEQK0WBTU-u-qqn-l4IknmXH1jRGW_fQ"
-  },
   "oauth2": {
     "client_id": "j3sH4R1htxgTkdWPxRgyTQt2LSiovrKuziHAc8aJ",
     "client_secret": "6hYU72rsW3VTl94hBqokzYZSuh5jaKLwjTYLouEhl7ndurkqn78lFYzeteU6kCHLzfZblT5WTf4p7R4VS9lR7vHne0Xm09DBolCG693Cp5qlwL7CHnUDAovjYPWxKP3z"
