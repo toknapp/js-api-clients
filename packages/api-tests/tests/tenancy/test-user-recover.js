@@ -11,9 +11,8 @@ test('Testing users.recover()', async function (t) {
   let echoSuccess;
   const clientIp = '127.0.0.1';
   const userAgent = 'Upvest JS API client test script';
-  const assetIds = [
-    testenv.config.assetIds.Ether,
-  ];
+  // const assetIds = Object.values(testenv.config.assetIds);
+  const assetIds = [testenv.config.assetIds.Ether];
   const { username, password, recoverykit, wallet_ids } = await partials.tCreateUser(t, testenv.tenancy, clientIp, userAgent, assetIds, true);
   if (! username) return;
 

@@ -13,12 +13,7 @@ test('Testing wallets.create(), wallets.list() and wallets.retrieve()', async fu
 
   const clientele = testenv.getClienteleAPI(username, password);
 
-  const assetIds = [
-    testenv.config.assetIds.Arweave,
-    testenv.config.assetIds.Bitcoin,
-    testenv.config.assetIds.Ether,
-    testenv.config.assetIds.ExampleERC20,
-  ];
+  const assetIds = Object.values(testenv.config.assetIds);
 
   const createdWallets = await partials.tCreateWallets(t, clientele, assetIds, username, password);
 
