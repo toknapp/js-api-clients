@@ -64,6 +64,9 @@ function sendTx(web3, rawTransaction, confirmationThreshold, logger) {
 
     const txPromise = web3.eth.sendSignedTransaction(rawTransaction);
 
+    txPromise.once('transactionHash', transactionHash => logger(`https://${NET_NAME}.etherscan.io/tx/${transactionHash}`));
+    txPromise.once('receipt', receipt => logger('receipt:', receipt));
+
     const txConfirmationListener = function(confirmationNumber, receipt) {
       logger(`confirmation number: ${confirmationNumber}`);
       if (! receipt.status) {
