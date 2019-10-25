@@ -11,6 +11,9 @@ test('Testing wallets.create(), wallets.list() and wallets.retrieve()', async fu
   const { username, password } = await partials.tCreateUser(t, testenv.tenancy);
   if (! username) return;
 
+  t.comment('Inspecting user creds:');
+  inspect({ username, password });
+
   const clientele = testenv.getClienteleAPI(username, password);
 
   const assetIds = Object.values(testenv.config.assetIds);
@@ -29,8 +32,8 @@ test('Testing wallets.create(), wallets.list() and wallets.retrieve()', async fu
     catch (error) {
       return partials.tErrorFail(t, error, 'Retrieving the wallet failed.');
     }
-    // t.comment('Inspecting retrieved wallet:');
-    // inspect(retrievedWallet);
+    t.comment('Inspecting retrieved wallet:');
+    inspect(retrievedWallet);
 
     // { id: '3e10efd9-72ce-4247-8bd9-50b9d14e1b27',
     //   address: '0x5eD17929FD017F98479c95A26ba1AA03bcF4628F',

@@ -138,9 +138,27 @@ function removeHexPrefix(hexString) {
 }
 
 
+const protocolToEtherscanSubDomainPrefix = new Map([
+  ['ethereum_ropsten', 'ropsten.'],
+  ['ethereum_kovan', 'kovan.'],
+  ['ethereum', ''],
+  ['ethereum_mainnet', ''], // used as such in faucet.js
+]);
+
+const getTxEtherscanUrl = (protocol, txhash) => {
+  const etherscanSubDomainPrefix = protocolToEtherscanSubDomainPrefix.get(protocol) || '';
+  return `https://${etherscanSubDomainPrefix}etherscan.io/tx/${txhash}`;
+}
+
+const getAddressEtherscanUrl = (protocol, address) => {
+  const etherscanSubDomainPrefix = protocolToEtherscanSubDomainPrefix.get(protocol) || '';
+  return `https://${etherscanSubDomainPrefix}etherscan.io/address/${address}`;
+}
+
 module.exports = {
   setDifference, setEqual, inspect, inspectResponse, inspectError,
   readlineQuestionPromise,
   getBalanceForAssetId,
   hexdump, removeHexPrefix,
+  getTxEtherscanUrl, getAddressEtherscanUrl,
 };

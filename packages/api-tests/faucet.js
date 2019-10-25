@@ -6,7 +6,7 @@ const minimalTransferABI = erc20ABI.filter(abi => (abi.type == 'function') && (a
 const web3Pool = require('./web3-pool.js');
 
 const {
-  inspect, inspectError, readlineQuestionPromise,
+  inspect, inspectError, readlineQuestionPromise, getTxEtherscanUrl, getAddressEtherscanUrl,
 } = require('./util.js');
 
 
@@ -56,7 +56,7 @@ async function prepareTxTransferErc20(web3, contract, sender, recipient, amount,
   };
 }
 
-function sendTx(web3, rawTransaction, confirmationThreshold, logger) {
+function sendTx(web3, rawTransaction, confirmationThreshold, netName, logger) {
   if (! logger) logger = msg => undefined;
   return new Promise(function promiseExecutor(resolvePromise, rejectPromise) {
     let rejectionReceipt = null;
@@ -64,8 +64,8 @@ function sendTx(web3, rawTransaction, confirmationThreshold, logger) {
 
     const txPromise = web3.eth.sendSignedTransaction(rawTransaction);
 
-    txPromise.once('transactionHash', transactionHash => logger(`https://${NET_NAME}.etherscan.io/tx/${transactionHash}`));
-    txPromise.once('receipt', receipt => logger('receipt:', receipt));
+    txPromise.once('transactionHash', transactionHash => logger(getTxEtherscanUrl(`ethereum_${netName}`, transactionHash)));
+    txPromise.once('receipt', receipt => logger(`receipt = ${JSON.stringify(receipt, null, 2)}`));
 
     const txConfirmationListener = function(confirmationNumber, receipt) {
       logger(`confirmation number: ${confirmationNumber}`);
@@ -155,7 +155,7 @@ class EthereumAndErc20Faucet {
     const key = ensureHexPrefix(this.config.holder.key);
     const signedTxBundle = await this.getWeb3().eth.accounts.signTransaction(tx, key);
     try {
-      return await sendTx(this.getWeb3(), signedTxBundle.rawTransaction, this.config.confirmationThreshold, logger);
+      return await sendTx(this.getWeb3(), signedTxBundle.rawTransaction, this.config.confirmationThreshold, this.config.netName, logger);
     }
     catch (error) {
       // TODO Re-think error handling.

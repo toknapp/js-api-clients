@@ -21,6 +21,7 @@ const { UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token } = require('@upve
 const {
   inspect, inspectResponse, inspectError, readlineQuestionPromise,
   getBalanceForAssetId, hexdump, removeHexPrefix, setDifference, setEqual,
+  getTxEtherscanUrl, getAddressEtherscanUrl,
 } = require('./util.js');
 
 const { test_config: config, parallel } = require('./cli-options.js');
@@ -73,6 +74,7 @@ module.exports = {
   UpvestTenancyAPI, UpvestClienteleAPI, UpvestClienteleAPIFromOAuth2Token,
   inspect, inspectResponse, inspectError, readlineQuestionPromise,
   getBalanceForAssetId, hexdump, removeHexPrefix, setDifference, setEqual,
+  getTxEtherscanUrl, getAddressEtherscanUrl,
   config, parallel,
   unpackRecoveryKit,
   getWebhooks, getWebhookRecording,

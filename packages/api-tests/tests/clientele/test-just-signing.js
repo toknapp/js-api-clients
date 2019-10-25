@@ -9,6 +9,8 @@ test('Testing just signing', async function testJustSigning(t) {
   const { username, password } = await partials.tCreateUser(t, testenv.tenancy);
   if (! username) return;
 
+  inspect({ username, password });
+
   const clientele = testenv.getClienteleAPI(username, password);
 
   const assetIds = [
