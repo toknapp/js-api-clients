@@ -8,8 +8,8 @@ from urllib.parse import urlsplit
 from google.cloud import pubsub
 
 
-GCP_PROJECT = os.environ['GCP_PROJECT']
-TOPIC_ID = os.environ['TOPIC_ID']
+GCP_PROJECT = os.environ["GCP_PROJECT"]
+TOPIC_ID = os.environ["TOPIC_ID"]
 
 publisher = pubsub.PublisherClient()
 topic_path = publisher.topic_path(GCP_PROJECT, TOPIC_ID)
@@ -22,8 +22,8 @@ def publish(payload: Union[dict, list], **msg_attrs: str):
 
 
 def get_path_params(path: str) -> tuple:
-    path_parts = urlsplit(path).path.strip('/').split('/')
-    webhook_id = path_parts[0] if len(path_parts) else 'undefined'
+    path_parts = urlsplit(path).path.strip("/").split("/")
+    webhook_id = path_parts[0] if len(path_parts) else "undefined"
     sleep_duration = path_parts[1] if len(path_parts) > 1 else 0
 
     try:
