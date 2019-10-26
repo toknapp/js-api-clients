@@ -33,6 +33,27 @@ def get_path_params(path: str) -> tuple:
 
     return webhook_id, sleep_duration
 
+
+def answer_if_verify_challenge(body: str) -> dict:
+    try:
+        payload = json.loads(body)
+    except Exception:
+        return {}
+    else:
+        if (
+            type(payload) is dict
+            and
+            "action" in payload
+            and
+            payload["action"] == "url.verify"
+            and
+            "challenge" in payload
+        ):
+            return {"challenge": payload["challenge"]}
+
+    return {}
+
+
 def httpRequestToPubsubMessage(request):
     received_time = time.time()
     try:
@@ -73,6 +94,8 @@ def httpRequestToPubsubMessage(request):
         "status": "ok",
         "pubsubPayload": payload,
     }
+
+    response_payload.update(answer_if_verify_challenge(body))
 
     pubsub_response = publish(payload)
     try:
