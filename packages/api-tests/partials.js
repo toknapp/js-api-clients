@@ -400,9 +400,81 @@ async function tEthereumSigning(t, api, wallet, password) {
 }
 
 
+const tVerifyDynamicWebhookBaseUrl = async (t, api, baseUrl) => {
+  t.comment(`Verify dynamic webhook base URL: ${baseUrl}`);
+  let verifyResponse;
+  try {
+    verifyResponse = await api.webhooks.verifyBaseUrl(baseUrl);
+  }
+  catch (error) {
+    return tErrorFail(t, error, 'Verifying the webhook base URL failed.');
+  }
+  t.comment('Inspecting verify response.');
+  inspect(verifyResponse);
+}
+
+
+const tCreateDynamicWebhookWithMatcher = async (t, api, eventFilters, specificWebhookMatcher) => {
+  t.comment('Create dynamic webhook.');
+
+  const dynamicBaseUrl = testenv.config.webhook.dynamicBaseUrl.replace(/\/+$/, '');
+  const webhookReceiverId = `${testenv.config.webhook.webhookId}-${cryptoRandomString(32)}`;
+  const url = `${dynamicBaseUrl}/${webhookReceiverId}`;
+  const headers = {"X-UP-JS-Test": "Hello world!"};
+  const version = '1.2';
+  const status = 'ACTIVE';
+  const name = webhookReceiverId;
+  const hmacSecretKey = cryptoRandomString(32);
+
+  let webhook;
+  try {
+    webhook = await api.webhooks.create(url, headers, version, status, name, hmacSecretKey, eventFilters);
+  }
+  catch (error) {
+    tErrorFail(t, error, 'Creating the webhook failed.');
+    return { webhook: null, matcher: null };
+  }
+  t.comment('Inspecting created webhook.');
+  inspect(webhook);
+
+  const genericWebhookMatcher = (body, simpleHeaders, rawHeaders, metaData) => {
+    const webhookPayload = JSON.parse(body);
+    if (metaData.webhookId != webhookReceiverId) {
+      // Only match the webhook created above.
+      return false;
+    }
+
+    const signatureHeader = simpleHeaders['X-Up-Signature'];
+    t.ok(signatureHeader, 'Found webhook HMAC signature header');
+    const hmac = crypto.createHmac('sha256', hmacSecretKey).update(body, 'utf8').digest('hex');
+    t.equal(signatureHeader, 'sha256=' + hmac, 'Webhook HMAC signature matches');
+
+    t.equal(webhookPayload.webhook_id, webhook.id, 'Received Webhook has same API ID as the webhook created just now.');
+
+    // // Disabled because Upvest API is not sending out those headers yet.
+    // // TODO Re-enable when API is processing headers
+    // t.comment('Inspecting received headers.');
+    // inspect(simpleHeaders);
+    // for (const [headerName, headerValue] of Object.entries(headers)) {
+    //   t.equal(simpleHeaders[headerName], headerValue, 'Specified webhook headers are present');
+    // }
+
+    if (typeof specificWebhookMatcher == 'function') {
+      return specificWebhookMatcher(t, webhookPayload);
+    }
+
+    return true;
+  }
+
+  return { webhook, matcher: genericWebhookMatcher };
+}
+
+
 module.exports = {
   tErrorFail, tGetCachedOrCreateUser, tCreateUser, tEcho, tCreateWallets,
   tWaitForWalletActivation, tWaitForBalanceUpdate, tIsRecoveryKitValid,
   tEthereumSigning,
   setTimeoutPromise,
+  tVerifyDynamicWebhookBaseUrl,
+  tCreateDynamicWebhookWithMatcher,
 };

@@ -49,7 +49,7 @@ class WebhookListener {
       message.ack();
       const msgData = JSON.parse(message.data);
 
-      if ((! 'webhookId' in msgData) || (msgData.webhookId != this.webhookConfig.webhookId)) {
+      if ((! 'webhookId' in msgData) || !msgData.webhookId.startsWith(this.webhookConfig.webhookId)) {
         // Only process messages that where meant for our tenant.
         return;
       }
@@ -58,6 +58,7 @@ class WebhookListener {
 
       const metaData = {
         pubsubMessageId: message.id,
+        webhookId: msgData.webhookId,
       };
 
       this._processRecordings(body, msgData.headers, msgData.rawHeaders, metaData);

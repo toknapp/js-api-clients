@@ -5,27 +5,48 @@ const partials = require('../../partials.js');
 const { test, inspect } = testenv;
 
 
-test.skip('Testing webhook.create()', async function (t) {
-  t.comment('Create webhook.')
+test('Testing dynamic webhook for "echo.get"', async function (t) {
+  t.comment('Create webhook.');
 
-  const url = 'https://upvest-raphael-flexapp.appspot.com/webhook/platitude--raphael-local-generic--tenant-1';
-  const headers = {"X-Test": "Hello world!"};
-  const version = '1.2';
-  const status = 'ACTIVE';
-  const eventFilters = [
-    'wallet.created',
-    '*',
-    'wallet.*',
-  ];
-  const hmacSecretKey = 'abcdef';
+  await partials.tVerifyDynamicWebhookBaseUrl(t, testenv.tenancy, testenv.config.webhook.dynamicBaseUrl);
 
-  let webhook;
+  const shout = 'Hello Echo!';
+
+  const eventFilters = ['upvest.echo.get'];
+  const echoGetWebhookMatcher = (t, webhookPayload) => {
+    t.comment('inspect webhookPayload');
+    inspect(webhookPayload);
+
+    t.equal(webhookPayload.action, 'echo.get', `Webhook payload has expected action value.`);
+    t.equal(webhookPayload.data.echo, shout, `Webhook payload has expected echo value.`);
+
+    return true;
+  };
+  const { webhook, matcher } = await partials.tCreateDynamicWebhookWithMatcher(t, testenv.tenancy, eventFilters, echoGetWebhookMatcher);
+
+  const webhookRecording = await testenv.getWebhookRecording();
+  webhookRecording.addMatcher(matcher);
+  
+  let echoGet;
   try {
-    webhook = await testenv.tenancy.webhooks.create(url, headers, version, status, eventFilters, hmacSecretKey);
+    echoGet = await testenv.tenancy.echoGet(shout);
   }
   catch (error) {
-    return partials.tErrorFail(t, error, 'Creating the webhook failed.');
+    return partials.tErrorFail(t, error, 'Failed to call echo endpoint. (Or, if this was run via OAuth2, it might also mean that obtaining the OAuth2 token failed.)');
   }
+  t.equal(echoGet, shout, `Actual and expected echo are equal (GET "${shout}")`);
+  
+  try {
+    t.comment('Waiting for all expected webhooks to be called.')
+    const areAllExpectedWebhooksCalled = await webhookRecording.areAllMatched(3 * 60 * 1000);
+    t.ok(areAllExpectedWebhooksCalled, 'All expected webhooks were called');
+  }
+  catch (err) {
+    inspect(err);
+    t.fail('Timed out while waiting for all expected webhooks to be called');
+  }
+  
+  webhookRecording.stop();
 
   t.end();
 });

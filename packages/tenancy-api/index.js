@@ -148,8 +148,8 @@ class WebhooksEndpoint {
     this.client = client;
   }
 
-  async create(baseUrl, path, headers, version, status, name, hmacSecretKey, eventFilters) {
-    const data = { base_url_string:baseUrl, path, headers, version, status, name, hmac_secret_key:hmacSecretKey, event_filters:eventFilters };
+  async create(url, headers, version, status, name, hmacSecretKey, eventFilters) {
+    const data = { url, headers, version, status, name, hmac_secret_key:hmacSecretKey, event_filters:eventFilters };
     const response = await this.client.post('tenancy/webhooks/', data);
     return response.data;
   }
@@ -170,11 +170,20 @@ class WebhooksEndpoint {
     return response.data;
   }
 
-  async update(id, baseUrl, path, headers, version, status, name, hmacSecretKey) {
-    const data = { base_url_string:baseUrl, path, headers, version, status, name, hmac_secret_key:hmacSecretKey };
-    const response = await this.client.patch(`tenancy/webhooks/${id}`, data);
-    return response.status == 200;
-  }
+  // // This is not yet implemented on the actual API.
+  // // TODO Uncomment when the API becomes available.
+  // //
+  // // The semantics of updating `eventFilters` is too complex, and therefore
+  // // is left out.
+  // //
+  // // fieldsToUpdate = { url, headers, version, status, name, hmacSecretKey }
+  // //
+  // async update(id, fieldsToUpdate) {
+  //   // hmacSecretKey => hmac_secret_key
+  //   const data = Object.assign({ hmac_secret_key:fieldsToUpdate['hmacSecretKey'] }, fieldsToUpdate, { hmacSecretKey:undefined });
+  //   const response = await this.client.patch(`tenancy/webhooks/${id}`, data);
+  //   return response.status == 200;
+  // }
 
   async delete(id) {
     const response = await this.client.delete(`tenancy/webhooks/${id}`);
