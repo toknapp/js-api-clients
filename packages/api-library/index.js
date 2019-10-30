@@ -119,7 +119,7 @@ class TransactionsEndpoint {
 
   async retrieve(walletId, transactionId) {
     const params = {};
-    const response = await this.client.get(`/wallets/${walletId}/transactions/${transactionId}`, params);
+    const response = await this.client.get(`kms/wallets/${walletId}/transactions/${transactionId}`, params);
     return response.data;
   }
 }
