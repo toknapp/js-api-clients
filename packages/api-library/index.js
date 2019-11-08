@@ -100,7 +100,7 @@ class TransactionsEndpoint {
     this.client = client;
   }
 
-  async create(walletId, password, recipient, assetId, quantity, fee, asynchronously) {
+  async create(walletId, password, recipient, assetId, quantity, fee, asynchronously, inputs) {
     const data = {
       password,
       recipient,
@@ -108,6 +108,7 @@ class TransactionsEndpoint {
       quantity:String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
       fee:String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
       "async": Boolean(asynchronously),
+      inputs,
     };
     const response = await this.client.post(`kms/wallets/${walletId}/transactions/`, data);
     return response.data;
