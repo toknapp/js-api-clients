@@ -3,7 +3,7 @@ const axios = require('axios');
 const oauth = require('axios-oauth-client');
 const tokenProvider = require('axios-token-interceptor');
 
-const { AssetsEndpoint, WalletsEndpoint, TransactionsEndpoint, SignaturesEndpoint } = require('@upvest/api-library');
+const { AssetsEndpoint, WalletsEndpoint, TransactionsEndpoint, SignaturesEndpoint, UtxosEndpoint } = require('@upvest/api-library');
 
 
 class BaseUpvestClienteleAPI {
@@ -54,6 +54,13 @@ class BaseUpvestClienteleAPI {
       this.signaturesEndpoint = new SignaturesEndpoint(this.client);
     }
     return this.signaturesEndpoint;
+  }
+
+  get utxos() {
+    if (! this.utxosEndpoint) {
+      this.utxosEndpoint = new UtxosEndpoint(this.client);
+    }
+    return this.utxosEndpoint;
   }
 }
 

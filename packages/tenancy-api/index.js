@@ -4,7 +4,7 @@ const { APIKeyAxiosInterceptor } = require('./authentication/api-key/axios-inter
 const { APIKeyDebugger } = require('./authentication/api-key/debugger.js');
 
 const {
-  AssetsEndpoint, WalletsEndpoint, TransactionsEndpoint, SignaturesEndpoint,
+  AssetsEndpoint, WalletsEndpoint, TransactionsEndpoint, SignaturesEndpoint, UtxosEndpoint,
   genericList, defaultListErrorHandler,
 } = require('@upvest/api-library');
 
@@ -91,6 +91,13 @@ class UpvestTenancyAPI {
       this.signaturesEndpoint = new SignaturesEndpoint(this.client);
     }
     return this.signaturesEndpoint;
+  }
+
+  get utxos() {
+    if (! this.utxosEndpoint) {
+      this.utxosEndpoint = new UtxosEndpoint(this.client);
+    }
+    return this.utxosEndpoint;
   }
 }
 

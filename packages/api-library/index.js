@@ -143,11 +143,33 @@ class SignaturesEndpoint {
 }
 
 
+class UtxosEndpoint {
+  constructor(client) {
+    this.client = client;
+  }
+
+  async* list(walletId) {
+    const path = `kms/wallets/${walletId}/utxos/`;
+    let response;
+    try {
+      response = await client.get(path, {});
+    }
+    catch (error) {
+      return defaultListErrorHandler(error, path);
+    }
+    for (const result of response.data.utxos) {
+      yield result;
+    }
+  }
+}
+
+
 module.exports = {
   AssetsEndpoint,
   WalletsEndpoint,
   TransactionsEndpoint,
   SignaturesEndpoint,
+  UtxosEndpoint,
   genericList,
   defaultListErrorHandler,
 };
