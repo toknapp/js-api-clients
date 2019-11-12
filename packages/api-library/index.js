@@ -153,7 +153,7 @@ class UtxosEndpoint {
     const path = `kms/wallets/${walletId}/utxos/`;
     let response;
     try {
-      response = await client.get(path, {});
+      response = await this.client.get(path, {});
     }
     catch (error) {
       return defaultListErrorHandler(error, path);
