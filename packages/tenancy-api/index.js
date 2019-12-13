@@ -103,6 +103,13 @@ class UpvestTenancyAPI {
     }
     return this.utxosEndpoint;
   }
+
+  get historical() {
+    if (!this.historicalEndpoint) {
+      this.historicalEndpoint = new HistoricalDataEndpoint(this.client);
+    }
+    return this.historicalEndpoint;
+  }
 }
 
 class UsersEndpoint {
@@ -223,10 +230,9 @@ class HistoricalDataEndpoint {
   }
 
   async get_transactions(protocol, network, address, filters) {
-    const params = filters;
     const response = await this.client.get(
       'data/${protocol}/${network}/transactions/${address}',
-      params
+      filters
     );
     return response.data;
   }
@@ -256,10 +262,6 @@ class HistoricalDataEndpoint {
   async api_status(protocol, network) {
     const response = await this.client.get('data/${protocol}/${network}/status');
     return response.data;
-  }
-
-  async *list(pageSize) {
-    yield* genericList('tenancy/webhooks/', this.client, pageSize);
   }
 }
 
