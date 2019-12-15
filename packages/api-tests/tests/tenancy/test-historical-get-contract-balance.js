@@ -13,7 +13,7 @@ test('Test retrieve contract asset balance by address', async function(t) {
 
   let balance;
   try {
-    tx = await testenv.tenancy.historical.get_contract_balance(
+    balance = await testenv.tenancy.historical.get_contract_balance(
       protocol,
       network,
       to_addr,
@@ -24,7 +24,7 @@ test('Test retrieve contract asset balance by address', async function(t) {
   }
 
   t.ok(balance.address, 'balance has address field');
-  t.equal(balance.contract, undefined, 'Contract balance contract is null as expected');
+  t.equal(balance.contract, contract_addr, 'Contract balance contract is set');
   t.equal(balance.address, to_addr, 'Contract address matches');
 
   t.end();

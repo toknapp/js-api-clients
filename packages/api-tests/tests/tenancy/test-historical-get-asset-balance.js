@@ -11,7 +11,7 @@ test('Test retrieve native asset balance by address', async function(t) {
   const to_addr = '0x93b3d0b2894e99c2934bed8586ea4e2b94ce6bfd';
   let balance;
   try {
-    tx = await testenv.tenancy.historical.get_asset_balance(protocol, network, to_addr);
+    balance = await testenv.tenancy.historical.get_asset_balance(protocol, network, to_addr);
   } catch (error) {
     return partials.tErrorFail(t, error, 'Retrieving the asset balance failed.');
   }

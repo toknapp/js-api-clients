@@ -19,9 +19,9 @@ test('Test list transactions that have been sent to and received by an address',
     return partials.tErrorFail(t, error, 'Retrieving the transaction failed.');
   }
 
-  t.ok(Array.isArray(txs.results), 'transaction results is an array');
+  t.ok(Array.isArray(txs.result), 'transaction results is an array');
 
-  confirmationsMatch = txs.results.every((el, i, arr) => el.confirmations > confirmations);
+  confirmationsMatch = txs.result.every((el, i, arr) => el.confirmations > confirmations);
   t.ok(confirmationsMatch, 'All transactions to/from ${to_addr} match expected confirmations');
 
   t.end();

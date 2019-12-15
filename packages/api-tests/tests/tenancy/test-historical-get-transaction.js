@@ -16,7 +16,7 @@ test('Test retrieve single transaction by txhash', async function(t) {
     return partials.tErrorFail(t, error, 'Retrieving the transaction failed.');
   }
 
-  t.equal(tx.hash, txhash.substring(-2), 'Transaction match');
+  t.equal(tx.hash, txhash.slice(2), 'Transaction match');
 
   t.end();
 });

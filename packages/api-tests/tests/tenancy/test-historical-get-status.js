@@ -10,14 +10,16 @@ const network = 'ropsten';
 test('Test retrieve protocol/network status', async function(t) {
   let status;
   try {
-    tx = await testenv.tenancy.historical.get_status(protocol, network, txhash);
+    status = await testenv.tenancy.historical.api_status(protocol, network);
   } catch (error) {
-    return partials.tErrorFail(t, error, 'Retrieving the status for ${protocol} ${network} failed');
+    return partials.tErrorFail(t, error, `Retrieving the status for ${protocol} ${network} failed`);
   }
 
-  sttausOK = [status.lowest, status.highest, status, latest].every((el, i, arr) => el !== null);
+  const statusOK = [status.lowest, status.highest, status.latest].every(
+    (el, i, arr) => el !== null
+  );
 
-  t.ok(statusOK, 'Sttaus OK');
+  t.ok(statusOK, `Status for ${protocol} ${network} OK`);
 
   t.end();
 });
