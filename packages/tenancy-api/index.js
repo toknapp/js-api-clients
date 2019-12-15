@@ -231,37 +231,37 @@ class HistoricalDataEndpoint {
 
   async get_transactions(protocol, network, address, filters) {
     const response = await this.client.get(
-      'data/${protocol}/${network}/transactions/${address}',
+      `data/${protocol}/${network}/transactions/${address}`,
       filters
     );
     return response.data;
   }
 
   async get_transaction(protocol, network, txhash) {
-    const response = await this.client.get('data/${protocol}/${network}/transaction/${txhash}');
-    return response.data;
+    const response = await this.client.get(`data/${protocol}/${network}/transaction/${txhash}`);
+    return response.data.result;
   }
 
   async get_block(protocol, network, block_number) {
-    const response = await this.client.get('data/${protocol}/${network}/block/${block_number}');
-    return response.data;
+    const response = await this.client.get(`data/${protocol}/${network}/block/${block_number}`);
+    return response.data.result;
   }
 
   async get_asset_balance(protocol, network, address) {
-    const response = await this.client.get('data/${protocol}/${network}/balance/${address}');
-    return response.data;
+    const response = await this.client.get(`data/${protocol}/${network}/balance/${address}`);
+    return response.data.result;
   }
 
   async get_contract_balance(protocol, network, address, contract_address) {
     const response = await this.client.get(
-      'data/${protocol}/${network}/balance/${address}/${contract_address}'
+      `data/${protocol}/${network}/balance/${address}/${contract_address}`
     );
-    return response.data;
+    return response.data.result;
   }
 
   async api_status(protocol, network) {
-    const response = await this.client.get('data/${protocol}/${network}/status');
-    return response.data;
+    const response = await this.client.get(`data/${protocol}/${network}/status`);
+    return response.data.result;
   }
 }
 
