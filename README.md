@@ -1,6 +1,8 @@
 # JS API clients for Upvest APIs
 
-This is a [monorepo](https://en.wikipedia.org/wiki/Monorepo) with [several NPM packages](./packages)  for the [Upvest API](https://doc.upvest.co/):
+[![CircleCI](https://circleci.com/gh/upvestco/upvest-javascript.svg?style=svg)](https://circleci.com/gh/upvestco/upvest-javascript)
+
+This is a [monorepo](https://en.wikipedia.org/wiki/Monorepo) with [several NPM packages](./packages) for the [Upvest API](https://doc.upvest.co/):
 
 - [JS API client for Upvest Tenancy API](https://www.npmjs.com/package/@upvest/tenancy-api)
 - [JS API client for Upvest Clientele API](https://www.npmjs.com/package/@upvest/clientele-api)
