@@ -114,6 +114,17 @@ class TransactionsEndpoint {
     return response.data;
   }
 
+  async createRaw(walletId, password, rawTx, inputFormat, fund) {
+    const data = {
+      password,
+      raw_tx:rawTx,
+      input_format:inputFormat,
+      fund: fund === false ? false : true,
+    };
+    const response = await this.client.post(`kms/wallets/${walletId}/transactions/raw`, data);
+    return response.data;
+  }
+
   async* list(walletId, pageSize) {
     yield* genericList(`kms/wallets/${walletId}/transactions/`, this.client, pageSize);
   }
