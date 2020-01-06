@@ -34,7 +34,7 @@ async function* genericList(path, client, pageSize, errorHandler) {
       response = await client.get(path, {params});
     }
     catch (error) {
-      return defaultListErrorHandler(error, path);
+      return errorHandler(error, path);
     }
     for (const result of response.data.results) {
       yield result;
