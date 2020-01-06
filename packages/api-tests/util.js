@@ -155,10 +155,50 @@ const getAddressEtherscanUrl = (protocol, address) => {
   return `https://${etherscanSubDomainPrefix}etherscan.io/address/${address}`;
 }
 
+
+async function* getWebsocketMessageGenerator(ws, getDoneState) {
+  const queue = [];
+  let isDone = false;
+
+  let resolveWaitForMessagePromise = () => {return undefined;}
+  const waitForMessage = () => new Promise(resolve => resolveWaitForMessagePromise = resolve);
+
+  const closeHandler = (code, reason) => {
+    isDone = true;
+    resolveWaitForMessagePromise();
+  }
+
+  ws.addListener('close', closeHandler);
+
+  const messageHandler = message => {
+    queue.push(message);
+    if (getDoneState(message)) {
+      isDone = true;
+    }
+    resolveWaitForMessagePromise();
+  }
+
+  ws.addListener('message', messageHandler);
+
+  while (!isDone || queue.length) {
+    while (queue.length) {
+      yield queue.shift();
+    }
+    if (!isDone) {
+      await waitForMessage();
+    }
+  }
+
+  ws.removeListener('close', closeHandler);
+  ws.removeListener('message', messageHandler);
+}
+
+
 module.exports = {
   setDifference, setEqual, inspect, inspectResponse, inspectError,
   readlineQuestionPromise,
   getBalanceForAssetId,
   hexdump, removeHexPrefix,
   getTxEtherscanUrl, getAddressEtherscanUrl,
+  getWebsocketMessageGenerator,
 };

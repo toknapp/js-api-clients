@@ -50,6 +50,23 @@
       "confirmationThreshold": 4,
       "gasPrice": 3.5e9,
       "balanceUpdateWaitMinutes": 4
+    },
+    "bitcoin": {
+      "blockCypher": {
+        "coin": "btc",
+        "chain": "test3",
+        "apiToken": "0123456789abcdef0123456789abcdef",
+        "timeout": 120000,
+        "rateLimitRequestsPerSecond": 3
+      },
+      "holder": {
+        "address": "n2MLKC6erJcW3qkWpDNWhjxZg3vGoar3L5",
+        "privateKeyWif": "cQnspicuousPrivateKeyConspicuousPrivateKey1zzdJnRrQm"
+      },
+      "btc": {
+        "amount": 1e5,
+        "assetId": "a3c18f74-935e-5d75-bd3c-ce0fb5464414"
+      }
     }
   }
 }
