@@ -125,6 +125,16 @@ class TransactionsEndpoint {
     return response.data;
   }
 
+  async createComplex(walletId, password, tx, fund) {
+    const data = {
+      password,
+      tx,
+      fund: fund === false ? false : true,
+    };
+    const response = await this.client.post(`kms/wallets/${walletId}/transactions/complex`, data);
+    return response.data;
+  }
+
   async* list(walletId, pageSize) {
     yield* genericList(`kms/wallets/${walletId}/transactions/`, this.client, pageSize);
   }
