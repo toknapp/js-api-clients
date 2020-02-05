@@ -8,7 +8,28 @@ Features
 
 - Get user wallets list
 - Create new wallet
+- Retrieve wallet data
+- Get assets list
+- Get asset data
+- Get transactions list
 - Send transaction
+- Retrieve transaction data by id
+
+## Installation
+
+Using yarn:
+
+```
+$ yarn add @upvest/clientele-api
+```
+
+Using npm:
+
+```
+$ npm install @upvest/clientele-api
+```
+
+In order to retrieve your API credentials for using this client, you'll need to [sign up with Upvest](https://login.upvest.co/sign-up).
 
 ### OAuth Authentication
 
@@ -31,11 +52,11 @@ const config = {
 };
 ```
 
-### Response objects
+## Response objects
 
-The response objects are designed around users, wallets, transactions and assets. If you retrieve more than one object (for example: `tenancy.users.list()`) an array of those objects will be returned.
+The response objects are designed around users, wallets, transactions and assets. If you retrieve more than one object (for example: `clientele.wallets.list()`) an array of those objects will be returned.
 
-#### Wallet object
+### Wallet object
 
 The wallet response object has the following properties:
 
@@ -44,7 +65,7 @@ let wallet = clientele.wallets.retrieve("wallet_id");
 const { id, address, balances, protocol, status } = wallet;
 ```
 
-#### Asset object
+### Asset object
 
 The transaction response object has the following properties:
 
@@ -53,7 +74,7 @@ let asset = clientele.assets.retrieve("asset_id");
 const { id, name, symbol, exponent, protocol, metadata } = asset;
 ```
 
-#### Transaction object
+### Transaction object
 
 The transaction response object has the following properties:
 
@@ -75,6 +96,8 @@ const {
 ```
 
 ## Usage
+
+### Clientele
 
 Create an `UpvestClienteleAPI` object with these credentials and your user authentication data in order to authenticate your API calls on behalf of a user:
 
@@ -204,34 +227,3 @@ For more examples, please check out our test-suite at https://www.npmjs.com/pack
 # License
 
 This software is released under the [MIT License](https://github.com/toknapp/js-api-clients/tree/master/LICENSE)
-
-# Client library for the Upvest Tenancy API
-
-This API encompasses operations for managing users within your tenancy.
-
-A tenancy is your "area" of Upvest, where you will be registering your users before authenticating them with OAuth2. When registering a user, you will be provided with a recovery kit to forward on to the user.
-
-This API client is based on [axios](https://www.npmjs.com/package/axios).
-
-Features
-
-- Create new tenant
-- Get users list
-- Change user password
-- Delete user
-
-## Installation
-
-Using yarn:
-
-```
-$ yarn add @upvest/tenancy-api
-```
-
-Using npm:
-
-```
-$ npm install @upvest/tenancy-api
-```
-
-In order to retrieve your API credentials for using this client, you'll need to [sign up with Upvest](https://login.upvest.co/sign-up).

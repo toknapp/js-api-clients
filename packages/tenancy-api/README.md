@@ -50,7 +50,7 @@ const config = {
 };
 ```
 
-### Response objects
+## Response objects
 
 The response objects are designed around users, wallets, transactions and assets. If you retrieve more than one object (for example: `tenancy.users.list()`) an array of those objects will be returned.
 
@@ -64,6 +64,8 @@ const { username, recoverykit } = user;
 ```
 
 ## Usage
+
+### Tenancy
 
 Create an `UpvestTenancyAPI` object in order to authenticate your API calls
 
@@ -83,7 +85,9 @@ const USERNAME = "Example User";
 const PASSWORD = "ex@mp1e p@55w0rd";
 ```
 
-### Create user
+#### User management
+
+##### Create a user
 
 ```javascript
 (async () => {
@@ -94,7 +98,7 @@ const PASSWORD = "ex@mp1e p@55w0rd";
 })();
 ```
 
-### Retrieve user
+##### Retrieve user
 
 ```javascript
 (async () => {
@@ -107,7 +111,7 @@ const PASSWORD = "ex@mp1e p@55w0rd";
 })();
 ```
 
-### Get users list
+##### Get users list
 
 ```javascript
 (async () => {
