@@ -43,14 +43,29 @@ const { UpvestTenancyAPI } = require("@upvest/tenancy-api");
 const config = {
   baseURL: "https://api-playground.eu.upvest.co/1.0/",
   apikey: {
-    key: "tPKWL9B_yTgfSToOFJmLyg",
-    secret: "9O7tLb1ub6qLHZQ00ButDOcfvw9g7Gn8GzFB4WmsUrA",
-    passphrase: "dlKsARh6U3chEQK0WBTU-u-qqn-l4IknmXH1jRGW_fQ"
+    key: API_KEY,
+    secret: API_SECRET,
+    passphrase: API_PASSPHRASE
   }
 };
 ```
 
-Next, create an `UpvestTenancyAPI` object in order to authenticate your API calls:
+### Response objects
+
+The response objects are designed around users, wallets, transactions and assets. If you retrieve more than one object (for example: `tenancy.users.list()`) an array of those objects will be returned.
+
+#### User object
+
+The user response object has the following properties:
+
+```javascript
+let user = tenancy.users.retrieve("username");
+const { username, recoverykit } = user;
+```
+
+## Usage
+
+Create an `UpvestTenancyAPI` object in order to authenticate your API calls
 
 ```javascript
 const tenancy = new UpvestTenancyAPI(
@@ -61,26 +76,33 @@ const tenancy = new UpvestTenancyAPI(
 );
 ```
 
-## Usage
+and set-up user credentials
+
+```javascript
+const USERNAME = "Example User";
+const PASSWORD = "ex@mp1e p@55w0rd";
+```
 
 ### Create user
 
 ```javascript
 (async () => {
-  const username = "Example User";
-  const password = "ex@mp1e p@55w0rd";
-
-  let exampleUser;
   try {
-    exampleUser = await tenancy.users.create(username, password);
-  } catch (error) {
-    // Handle error
-  }
+    let newUser = await tenancy.users.create(USERNAME, PASSWORD);
+    console.log(newUser);
+  } catch (_) {}
+})();
+```
 
-  console.log(exampleUser.username);
+### Retrieve user
 
-  for await (const user of tenancy.users.list()) {
-    console.log(user.username);
+```javascript
+(async () => {
+  try {
+    let user = await this.tenancy.users.retrieve(USERNAME);
+    console.log(user);
+  } catch (err) {
+    console.log(err.response.statusText);
   }
 })();
 ```
@@ -89,27 +111,21 @@ const tenancy = new UpvestTenancyAPI(
 
 ```javascript
 (async () => {
-  try {
-    const iterator = this.tenancy.users.list();
-    const user = await iterator.next();
-    console.log("user 1: ", user);
-    if (!user.done) {
-      const nextUser = await iterator.next(user);
-      console.log("user 2: ", nextUser);
-    }
-  } catch (err) {}
+  let users = [];
+  for await (let user of this.tenancy.users.list()) users.push(user);
+  console.log(users);
 })();
 ```
 
 ### Change user password
 
 ```javascript
-const newPassword = "n3w p@55w0rd";
+const NEW_PASSWORD = "n3w p@55w0rd";
 (async () => {
   try {
-    await tenancy.users.updatePassword(username, password, newPassword);
+    await tenancy.users.updatePassword(USERNAME, PASSWORD, NEW_PASSWORD);
     console.log("Password was updated.");
-  } catch (err) {}
+  } catch (_) {}
 })();
 ```
 
@@ -118,9 +134,9 @@ const newPassword = "n3w p@55w0rd";
 ```javascript
 (async () => {
   try {
-    await tenancy.users.delete(username);
+    await tenancy.users.delete(USERNAME);
     console.log("User was deleted.");
-  } catch (err) {}
+  } catch (_) {}
 })();
 ```
 
