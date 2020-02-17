@@ -10,10 +10,10 @@ Features
 - Create new wallet
 - Retrieve wallet data
 - Get assets list
-- Get asset data
+- Retrieve asset data
 - Get transactions list
 - Send transaction
-- Retrieve transaction data by id
+- Retrieve transaction data
 
 ## Installation
 
@@ -208,7 +208,7 @@ const clientele = new UpvestClienteleAPI(
 })();
 ```
 
-#### Retrieve specific transaction
+##### Retrieve specific transaction
 
 ```javascript
 (async () => {
