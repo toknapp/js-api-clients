@@ -3,10 +3,12 @@
 function defaultListErrorHandler(error, path) {
   console.log(`Caught error while trying to get ${path} list.`);
   if ('response' in error) {
-    console.dir(error.response.config.url, {depth:null, colors:true});
-    console.dir(error.response.config.headers, {depth:null, colors:true});
-    console.dir(error.response.status, {depth:null, colors:true});
-    console.dir(error.response.data, {depth:null, colors:true});
+    if ('config' in error.response) {
+      if ('url' in error.response.config) { console.dir(error.response.config.url, {depth:null, colors:true}); }
+      if ('headers' in error.response.config) { console.dir(error.response.config.headers, {depth:null, colors:true}); }
+    }
+    if ('status' in error.response) { console.dir(error.response.status, {depth:null, colors:true}); }
+    if ('data' in error.response) { console.dir(error.response.data, {depth:null, colors:true}); }
   }
   else {
     console.log('Caught error without response:');
