@@ -102,7 +102,7 @@ class TransactionsEndpoint {
     this.client = client;
   }
 
-  async create(walletId, password, recipient, assetId, quantity, fee, asynchronously, inputs) {
+  async create(walletId, password, recipient, assetId, quantity, fee, asynchronously, inputs, fund) {
     const data = {
       password,
       recipient,
@@ -111,6 +111,7 @@ class TransactionsEndpoint {
       fee:String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
       "async": Boolean(asynchronously),
       inputs,
+      fund: fund === Boolean(fund) ? fund : undefined, // `undefined` excludes from JSON payload, which triggers the "legacy behaviour" of leaving the default up to the API
     };
     const response = await this.client.post(`kms/wallets/${walletId}/transactions/`, data);
     return response.data;
