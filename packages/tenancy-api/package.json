@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@upvest/tenancy-api",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "An axios-based client for the Upvest Tenancy API",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/toknapp/js-api-clients#readme",
   "dependencies": {
-    "@upvest/api-library": "^0.0.17",
+    "@upvest/api-library": "^0.0.18",
     "axios": "^0.18.0"
   }
 }
