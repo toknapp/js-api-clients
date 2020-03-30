@@ -1,3 +1,5 @@
+import {version} from '../../package.json';
+
 function defaultListErrorHandler(error, path) {
   console.log(`Caught error while trying to get ${path} list.`);
   if ('response' in error) {
@@ -198,7 +200,8 @@ class UtxosEndpoint {
 }
 
 function createHTTPClient(userAgent) {
-  const defaultUserAgent = 'Upvest-JS-API-Client/0.0.21';
+  //use actual package version from package.json
+  const defaultUserAgent = `Upvest-JS-API-Client/${version}`;
   client = axios.create({
     baseURL: baseURL,
     timeout: timeout || 120000,
