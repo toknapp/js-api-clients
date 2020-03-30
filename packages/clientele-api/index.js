@@ -147,8 +147,7 @@ class UpvestClienteleAPIFromOAuth2Token extends BaseUpvestClienteleAPI {
     });
 
     // create the httpc leint
-    client = createHTTPClient(userAgent);
-
+    client = createHTTPClient({baseURL, timeout, userAgent});
     const requestInterceptorHandle = client.interceptors.request.use(
       // Wraps axios-token-interceptor with oauth-specific configuration,
       // fetches the token using the desired claim method, and caches

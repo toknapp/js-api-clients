@@ -199,12 +199,12 @@ class UtxosEndpoint {
   }
 }
 
-function createHTTPClient(userAgent) {
+function createHTTPClient(config) {
   //use actual package version from package.json
   const defaultUserAgent = `Upvest-JS-API-Client/${version}`;
   client = axios.create({
-    baseURL: baseURL,
-    timeout: timeout || 120000,
+    baseURL: config.baseURL,
+    timeout: config.timeout || 120000,
     maxRedirects: 0, // Upvest API should not redirect anywhere. We use versioned endpoints instead.
   });
 

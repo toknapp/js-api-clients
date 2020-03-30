@@ -16,7 +16,7 @@ const {
 
 class UpvestTenancyAPI {
   constructor(baseURL, key, secret, passphrase, timeout = 120000, debug = false, userAgent) {
-    this.client = createHTTPClient(userAgent);
+    this.client = createHTTPClient({baseURL, timeout, userAgent});
     this.interceptor = new APIKeyAxiosInterceptor(key, secret, passphrase);
 
     if (debug) {
