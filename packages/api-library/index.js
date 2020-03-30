@@ -208,7 +208,7 @@ function createHTTPClient(config) {
     maxRedirects: 0, // Upvest API should not redirect anywhere. We use versioned endpoints instead.
   });
 
-  client.defaults.headers.common['User-Agent'] = userAgent || defaultUserAgent;
+  client.defaults.headers.common['User-Agent'] = config.userAgent || defaultUserAgent;
 
   return client;
 }
