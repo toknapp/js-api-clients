@@ -12,6 +12,7 @@ shared: &shared
     - run:
         name: Provide an .env:ironment
         command: base64 -d <<< "$TEST_CONFIG" > .test_config.json
+        working_directory: packages/api-tests
     - run: npm test
 
 jobs:
