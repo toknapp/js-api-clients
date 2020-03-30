@@ -1,25 +1,29 @@
-
-
 function defaultListErrorHandler(error, path) {
   console.log(`Caught error while trying to get ${path} list.`);
   if ('response' in error) {
     if ('config' in error.response) {
-      if ('url' in error.response.config) { console.dir(error.response.config.url, {depth:null, colors:true}); }
-      if ('headers' in error.response.config) { console.dir(error.response.config.headers, {depth:null, colors:true}); }
+      if ('url' in error.response.config) {
+        console.dir(error.response.config.url, {depth: null, colors: true});
+      }
+      if ('headers' in error.response.config) {
+        console.dir(error.response.config.headers, {depth: null, colors: true});
+      }
     }
-    if ('status' in error.response) { console.dir(error.response.status, {depth:null, colors:true}); }
-    if ('data' in error.response) { console.dir(error.response.data, {depth:null, colors:true}); }
-  }
-  else {
+    if ('status' in error.response) {
+      console.dir(error.response.status, {depth: null, colors: true});
+    }
+    if ('data' in error.response) {
+      console.dir(error.response.data, {depth: null, colors: true});
+    }
+  } else {
     console.log('Caught error without response:');
-    console.dir(error, {depth:null, colors:true});
+    console.dir(error, {depth: null, colors: true});
   }
   return;
 }
 
-
 async function* genericList(path, client, pageSize, errorHandler) {
-  if (! errorHandler) {
+  if (!errorHandler) {
     errorHandler = defaultListErrorHandler;
   }
   let cursor = null;
@@ -34,8 +38,7 @@ async function* genericList(path, client, pageSize, errorHandler) {
     let response;
     try {
       response = await client.get(path, {params});
-    }
-    catch (error) {
+    } catch (error) {
       return errorHandler(error, path);
     }
     for (const result of response.data.results) {
@@ -45,20 +48,18 @@ async function* genericList(path, client, pageSize, errorHandler) {
       let nextUrl = new URL(response.data.next);
       cursor = nextUrl.searchParams.get('cursor');
       // TODO Figure out how to use the whole URL in `next` instead of this parsing.
-    }
-    else {
+    } else {
       cursor = null;
     }
   } while (cursor != null);
 }
-
 
 class AssetsEndpoint {
   constructor(client) {
     this.client = client;
   }
 
-  async* list(pageSize) {
+  async *list(pageSize) {
     yield* genericList('assets/', this.client, pageSize);
   }
 
@@ -68,7 +69,6 @@ class AssetsEndpoint {
     return response.data;
   }
 }
-
 
 class WalletsEndpoint {
   constructor(client) {
@@ -85,7 +85,7 @@ class WalletsEndpoint {
     return response.data;
   }
 
-  async* list(pageSize) {
+  async *list(pageSize) {
     yield* genericList('kms/wallets/', this.client, pageSize);
   }
 
@@ -96,20 +96,29 @@ class WalletsEndpoint {
   }
 }
 
-
 class TransactionsEndpoint {
   constructor(client) {
     this.client = client;
   }
 
-  async create(walletId, password, recipient, assetId, quantity, fee, asynchronously, inputs, fund) {
+  async create(
+    walletId,
+    password,
+    recipient,
+    assetId,
+    quantity,
+    fee,
+    asynchronously,
+    inputs,
+    fund
+  ) {
     const data = {
       password,
       recipient,
-      asset_id:assetId,
-      quantity:String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
-      fee:String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
-      "async": Boolean(asynchronously),
+      asset_id: assetId,
+      quantity: String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
+      fee: String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
+      async: Boolean(asynchronously),
       inputs,
       fund: fund === Boolean(fund) ? fund : undefined, // `undefined` excludes from JSON payload, which triggers the "legacy behaviour" of leaving the default up to the API
     };
@@ -120,8 +129,8 @@ class TransactionsEndpoint {
   async createRaw(walletId, password, rawTx, inputFormat, fund) {
     const data = {
       password,
-      raw_tx:rawTx,
-      input_format:inputFormat,
+      raw_tx: rawTx,
+      input_format: inputFormat,
       fund: fund === false ? false : true,
     };
     const response = await this.client.post(`kms/wallets/${walletId}/transactions/raw`, data);
@@ -138,17 +147,19 @@ class TransactionsEndpoint {
     return response.data;
   }
 
-  async* list(walletId, pageSize) {
+  async *list(walletId, pageSize) {
     yield* genericList(`kms/wallets/${walletId}/transactions/`, this.client, pageSize);
   }
 
   async retrieve(walletId, transactionId) {
     const params = {};
-    const response = await this.client.get(`kms/wallets/${walletId}/transactions/${transactionId}`, params);
+    const response = await this.client.get(
+      `kms/wallets/${walletId}/transactions/${transactionId}`,
+      params
+    );
     return response.data;
   }
 }
-
 
 class SignaturesEndpoint {
   constructor(client) {
@@ -157,9 +168,9 @@ class SignaturesEndpoint {
 
   async sign(walletId, password, toSign, inputFormat, outputFormat) {
     const data = {
-      input_format:inputFormat,
-      output_format:outputFormat,
-      to_sign:toSign,
+      input_format: inputFormat,
+      output_format: outputFormat,
+      to_sign: toSign,
       password,
     };
     const response = await this.client.post(`kms/wallets/${walletId}/sign`, data);
@@ -167,19 +178,17 @@ class SignaturesEndpoint {
   }
 }
 
-
 class UtxosEndpoint {
   constructor(client) {
     this.client = client;
   }
 
-  async* list(walletId) {
+  async *list(walletId) {
     const path = `kms/wallets/${walletId}/utxos/`;
     let response;
     try {
       response = await this.client.get(path, {});
-    }
-    catch (error) {
+    } catch (error) {
       return defaultListErrorHandler(error, path);
     }
     for (const result of response.data.utxos) {
@@ -188,6 +197,18 @@ class UtxosEndpoint {
   }
 }
 
+function createHTTPClient(userAgent) {
+  const defaultUserAgent = 'Upvest-JS-API-Client/0.0.21';
+  client = axios.create({
+    baseURL: baseURL,
+    timeout: timeout || 120000,
+    maxRedirects: 0, // Upvest API should not redirect anywhere. We use versioned endpoints instead.
+  });
+
+  client.defaults.headers.common['User-Agent'] = userAgent || defaultUserAgent;
+
+  return client;
+}
 
 module.exports = {
   AssetsEndpoint,
@@ -197,4 +218,5 @@ module.exports = {
   UtxosEndpoint,
   genericList,
   defaultListErrorHandler,
+  createHTTPClient,
 };

@@ -10,17 +10,13 @@ const {
   SignaturesEndpoint,
   UtxosEndpoint,
   genericList,
-  defaultListErrorHandler
+  defaultListErrorHandler,
+  createHTTPClient,
 } = require('@upvest/api-library');
 
 class UpvestTenancyAPI {
-  constructor(baseURL, key, secret, passphrase, timeout = 120000, debug = false) {
-    this.client = axios.create({
-      baseURL: baseURL,
-      timeout: timeout || 120000,
-      maxRedirects: 0 // Upvest API should not redirect anywhere. We use versioned endpoints instead.
-    });
-
+  constructor(baseURL, key, secret, passphrase, timeout = 120000, debug = false, userAgent) {
+    this.client = createHTTPClient(userAgent);
     this.interceptor = new APIKeyAxiosInterceptor(key, secret, passphrase);
 
     if (debug) {
@@ -134,7 +130,7 @@ class UsersEndpoint {
       user_agent: userAgent,
       asset_ids: assetIds,
       raw: Boolean(rawRecoverykit),
-      async: Boolean(asynchronously)
+      async: Boolean(asynchronously),
     };
     const response = await this.client.post('tenancy/users/', data, {requestId});
     return response.data;
@@ -181,7 +177,7 @@ class WebhooksEndpoint {
       status,
       name,
       hmac_secret_key: hmacSecretKey,
-      event_filters: eventFilters
+      event_filters: eventFilters,
     };
     const response = await this.client.post('tenancy/webhooks/', data);
     return response.data;
@@ -266,5 +262,5 @@ class HistoricalDataEndpoint {
 }
 
 module.exports = {
-  UpvestTenancyAPI
+  UpvestTenancyAPI,
 };
