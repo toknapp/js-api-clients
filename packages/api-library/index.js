@@ -1,4 +1,33 @@
-import {version} from '../../package.json';
+const axios = require('axios');
+const pjson = require('../../package.json');
+
+const defaultUserAgent = `Upvest-JS-API-Client/${pjson.version}`;
+
+const Struct = (...keys) => (...v) =>
+  keys.reduce((o, k, i) => {
+    o[k] = v[i];
+    return o;
+  }, {});
+
+const _defaultBaseConfig = Struct('timeout', 'debug', 'userAgent')(120000, false, defaultUserAgent);
+
+function buildConfig(config) {
+  // merge config into the default base configs, overriding defaults
+  return {..._defaultBaseConfig, ...config};
+}
+
+function createHTTPClient(config) {
+  //use actual package version from package.json
+  client = axios.create({
+    baseURL: config.baseURL,
+    timeout: config.timeout,
+    maxRedirects: 0, // Upvest API should not redirect anywhere. We use versioned endpoints instead.
+  });
+
+  client.defaults.headers.common['User-Agent'] = config.userAgent;
+
+  return client;
+}
 
 function defaultListErrorHandler(error, path) {
   console.log(`Caught error while trying to get ${path} list.`);
@@ -199,20 +228,6 @@ class UtxosEndpoint {
   }
 }
 
-function createHTTPClient(config) {
-  //use actual package version from package.json
-  const defaultUserAgent = `Upvest-JS-API-Client/${version}`;
-  client = axios.create({
-    baseURL: config.baseURL,
-    timeout: config.timeout || 120000,
-    maxRedirects: 0, // Upvest API should not redirect anywhere. We use versioned endpoints instead.
-  });
-
-  client.defaults.headers.common['User-Agent'] = config.userAgent || defaultUserAgent;
-
-  return client;
-}
-
 module.exports = {
   AssetsEndpoint,
   WalletsEndpoint,
@@ -221,5 +236,7 @@ module.exports = {
   UtxosEndpoint,
   genericList,
   defaultListErrorHandler,
+  buildConfig,
   createHTTPClient,
+  Struct,
 };
