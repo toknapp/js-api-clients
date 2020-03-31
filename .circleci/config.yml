@@ -16,11 +16,6 @@ shared: &shared
     - run: npm test
 
 jobs:
-  "node-8":
-    <<: *shared
-    docker:
-      - image: circleci/node:8
-
   "node-10":
     <<: *shared
     docker:
@@ -30,5 +25,4 @@ workflows:
   version: 2
   build:
     jobs:
-      - "node-8"
       - "node-10"
