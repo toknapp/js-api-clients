@@ -1,4 +1,4 @@
-import {version} from '../../package.json';
+const axios = require('axios');
 
 function defaultListErrorHandler(error, path) {
   console.log(`Caught error while trying to get ${path} list.`);
@@ -201,7 +201,7 @@ class UtxosEndpoint {
 
 function createHTTPClient(config) {
   //use actual package version from package.json
-  const defaultUserAgent = `Upvest-JS-API-Client/${version}`;
+  const defaultUserAgent = `Upvest-JS-API-Client/${config.version || 'NA'}`;
   client = axios.create({
     baseURL: config.baseURL,
     timeout: config.timeout || 120000,

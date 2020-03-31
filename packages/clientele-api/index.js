@@ -3,6 +3,8 @@ const axios = require('axios');
 const oauth = require('axios-oauth-client');
 const tokenProvider = require('axios-token-interceptor');
 
+const { version } = require('./package.json');
+
 const {
   AssetsEndpoint,
   WalletsEndpoint,
@@ -147,7 +149,7 @@ class UpvestClienteleAPIFromOAuth2Token extends BaseUpvestClienteleAPI {
     });
 
     // create the httpc leint
-    client = createHTTPClient({baseURL, timeout, userAgent});
+    client = createHTTPClient({baseURL, timeout, userAgent, version });
     const requestInterceptorHandle = client.interceptors.request.use(
       // Wraps axios-token-interceptor with oauth-specific configuration,
       // fetches the token using the desired claim method, and caches

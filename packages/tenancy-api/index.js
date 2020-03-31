@@ -3,6 +3,8 @@ const axios = require('axios');
 const {APIKeyAxiosInterceptor} = require('./authentication/api-key/axios-interceptor.js');
 const {APIKeyDebugger} = require('./authentication/api-key/debugger.js');
 
+const { version } = require('./package.json');
+
 const {
   AssetsEndpoint,
   WalletsEndpoint,
@@ -16,7 +18,7 @@ const {
 
 class UpvestTenancyAPI {
   constructor(baseURL, key, secret, passphrase, timeout = 120000, debug = false, userAgent) {
-    this.client = createHTTPClient({baseURL, timeout, userAgent});
+    this.client = createHTTPClient({baseURL, timeout, userAgent, version });
     this.interceptor = new APIKeyAxiosInterceptor(key, secret, passphrase);
 
     if (debug) {
