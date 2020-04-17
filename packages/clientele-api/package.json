@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@upvest/clientele-api",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "An axios-based, browser-runnable, client for the Upvest Clientele API",
   "scripts": {
     "lint": "eslint --ext .js ./"
