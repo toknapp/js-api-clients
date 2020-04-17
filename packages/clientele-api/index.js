@@ -34,8 +34,7 @@ class BaseUpvestClienteleAPI {
   async offboard(password) {
     const response = await this.client.post(
       'clientele/offboard',
-      {password},
-      {responseType: 'arraybuffer'}
+      {password}
     );
     return response.data;
   }
