@@ -2,13 +2,11 @@ const cryptoRandomString = require('crypto-random-string');
 
 const { PubSub } = require('@google-cloud/pubsub');
 
-const pubsub = new PubSub();
 
-async function getGooglePubsubSubscription(projectId, topicId) {
-  projectId = projectId || process.env.GCP_PROJECT;
-  topicId = topicId || process.env.TOPIC_ID || 'upvest-js-client-test-webhook';
+async function getGooglePubsubSubscription(projectId, topicId, credentials) {
   const subscriptionId = topicId + '-' + cryptoRandomString(16);
 
+  const pubsub = new PubSub({ projectId, credentials });
   const [ topic ] = await pubsub.topic(topicId).get({ autoCreate: true });
   const [ subscription ] = await topic.createSubscription(
     subscriptionId,

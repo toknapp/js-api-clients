@@ -101,7 +101,7 @@ test('Testing users.updatePassword()', async function (t) {
       'ethereum_ropsten', 'erc20_ropsten',
       'ethereum_kovan', 'erc20_kovan',
     ];
-    if (-1 === protocolNamesToTestWith.indexOf(wallet.protocol)) {
+    if (!protocolNamesToTestWith.includes(wallet.protocol)) {
       continue;
     }
 

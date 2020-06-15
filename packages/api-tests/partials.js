@@ -106,8 +106,9 @@ const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds, rawRecover
 
     webhookRecording.stop();
 
+    const clientele = testenv.getClienteleAPI(username, password);
     // In case no webhook setup is configured.
-    await tWaitForWalletActivation(t, tenancy);
+    await tWaitForWalletActivation(t, clientele);
   }
 
   user.password = password;

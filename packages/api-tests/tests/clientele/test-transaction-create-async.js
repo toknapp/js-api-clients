@@ -50,7 +50,7 @@ async function testAsyncTransactionCreationWithFaucet(t) {
         'ethereum_ropsten', 'erc20_ropsten',
         'ethereum_kovan', 'erc20_kovan',
       ];
-      if (-1 === protocolNamesToTestTxWith.indexOf(wallet.protocol)) {
+      if (!protocolNamesToTestTxWith.includes(wallet.protocol)) {
         continue;
       }
 

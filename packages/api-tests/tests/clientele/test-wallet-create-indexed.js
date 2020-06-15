@@ -11,6 +11,8 @@ test('Testing wallets.create() with indexes, wallets.list() and wallets.retrieve
   const { username, password } = await partials.tCreateUser(t, testenv.tenancy);
   if (! username) return;
 
+  inspect({ username, password });
+
   const clientele = testenv.getClienteleAPI(username, password);
 
   const assetIdsAndIndexes = [

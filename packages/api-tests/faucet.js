@@ -1,4 +1,5 @@
 const { toBN } = require('web3-utils');
+const EthereumTx = require('ethereumjs-tx').Transaction;
 
 const erc20ABI = require('./erc20-abi.json');
 const minimalTransferABI = erc20ABI.filter(abi => (abi.type == 'function') && (abi.name == 'transfer'))[0];
@@ -6,8 +7,20 @@ const minimalTransferABI = erc20ABI.filter(abi => (abi.type == 'function') && (a
 const web3Pool = require('./web3-pool.js');
 
 const {
-  inspect, inspectError, readlineQuestionPromise, getTxEtherscanUrl, getAddressEtherscanUrl,
+  inspect, getTxEtherscanUrl,
 } = require('./util.js');
+
+const { EthGasStation } = require('./ethgasstation.js');
+
+const egs = new EthGasStation();
+
+function ensureHexPrefix(hexString) {
+  return (hexString.substr(0, 2) === '0x') ? hexString : '0x' + hexString;
+}
+
+function un0x(hexString) {
+  return hexString.replace(/^0[xX]/, '');
+}
 
 
 async function prepareTxSendEther(web3, sender, recipient, amount, gasPrice=3.5e9, nonce=null) {
@@ -31,11 +44,11 @@ async function prepareTxSendEther(web3, sender, recipient, amount, gasPrice=3.5e
   }
 
   return {
-    value: toBN(amount),
-    to: recipient,
-    nonce: toBN(nonce),
-    gas: gasLimit,
-    gasPrice: gasPrice,
+    value: ensureHexPrefix(toBN(amount).toString(16)),
+    to: ensureHexPrefix(recipient),
+    nonce: ensureHexPrefix(toBN(nonce).toString(16)),
+    gasLimit: ensureHexPrefix(gasLimit.toString(16)),
+    gasPrice: ensureHexPrefix(gasPrice.toString(16)),
   };
 }
 
@@ -49,10 +62,10 @@ async function prepareTxTransferErc20(web3, contract, sender, recipient, amount,
   }
   return {
     data: transferCall,
-    to: contract,
-    nonce: toBN(nonce),
-    gas: toBN(gasLimit),
-    gasPrice: toBN(gasPrice),
+    to: ensureHexPrefix(contract),
+    nonce: ensureHexPrefix(toBN(nonce).toString(16)),
+    gasLimit: ensureHexPrefix(gasLimit.toString(16)),
+    gasPrice: ensureHexPrefix(gasPrice.toString(16)),
   };
 }
 
@@ -114,10 +127,6 @@ function sendTx(web3, rawTransaction, confirmationThreshold, netName, logger) {
   });
 }
 
-function ensureHexPrefix(hexString) {
-  return (hexString.substr(0, 2) === '0x') ? hexString : '0x' + hexString;
-}
-
 
 class EthereumAndErc20Faucet {
   constructor(config) {
@@ -125,12 +134,12 @@ class EthereumAndErc20Faucet {
     this.currentNonce = toBN(0);
   }
 
-  getWeb3() {
+  get web3() {
     return web3Pool.getWeb3(this.config.infuraProjectId, this.config.netName);
   }
 
   async syncCurrentNonceFromBlockChain() {
-    const blockChainNonce = toBN(await this.getWeb3().eth.getTransactionCount(this.config.holder.address));
+    const blockChainNonce = toBN(await this.web3.eth.getTransactionCount(this.config.holder.address));
     if (blockChainNonce.gt(this.currentNonce)) {
       this.currentNonce = blockChainNonce;
     }
@@ -150,12 +159,16 @@ class EthereumAndErc20Faucet {
     return this.currentNonce;
   }
 
-  async signAndSend(tx, logger) {
+  async signAndSend(txParams, logger) {
     if (! logger) logger = msg => undefined;
-    const key = ensureHexPrefix(this.config.holder.key);
-    const signedTxBundle = await this.getWeb3().eth.accounts.signTransaction(tx, key);
+    const privateKey = Buffer.from(un0x(this.config.holder.key), 'hex');
+
+    const tx = new EthereumTx(txParams, { chain: this.config.netName, hardfork: 'petersburg' });
+    tx.sign(privateKey);
+    const serializedTx = tx.serialize();
+
     try {
-      return await sendTx(this.getWeb3(), signedTxBundle.rawTransaction, this.config.confirmationThreshold, this.config.netName, logger);
+      return await sendTx(this.web3, ensureHexPrefix(serializedTx.toString('hex')), this.config.confirmationThreshold, this.config.netName, logger);
     }
     catch (error) {
       // TODO Re-think error handling.
@@ -165,11 +178,11 @@ class EthereumAndErc20Faucet {
 
   async faucetEth(recipient, amount, logger) {
     const txSendEther = await prepareTxSendEther(
-      this.getWeb3(),
+      this.web3,
       this.config.holder.address,
       recipient,
       toBN(amount),
-      this.config.gasPrice,
+      (await egs.getGasPrice(24)).min,
       await this.getCurrentNonce()
     );
     return await this.signAndSend(txSendEther, logger);
@@ -177,12 +190,12 @@ class EthereumAndErc20Faucet {
 
   async faucetErc20(recipient, amount, logger) {
     const txTransferErc20 = await prepareTxTransferErc20(
-      this.getWeb3(),
+      this.web3,
       this.config.erc20.contract,
       this.config.holder.address,
       recipient,
       toBN(amount),
-      this.config.gasPrice,
+      (await egs.getGasPrice(24)).min,
       this.config.erc20.gasLimit,
       await this.getCurrentNonce()
     );

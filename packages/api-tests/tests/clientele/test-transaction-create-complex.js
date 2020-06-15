@@ -6,6 +6,10 @@ const partials = require('../../partials.js');
 const erc20ABI = require('../../erc20-abi.json');
 const minimalTransferABI = erc20ABI.filter(abi => (abi.type == 'function') && (abi.name == 'transfer'))[0];
 
+const { EthGasStation } = require('../../ethgasstation.js');
+
+const egs = new EthGasStation();
+
 // Shortcuts to most-used facilities.
 const { test, inspect, int2BN } = testenv;
 
@@ -43,7 +47,6 @@ async function testComplexTransactionCreationWithFaucet(t) {
     for await (const wallet of clientele.wallets.list()) {
       let currentEthBalanceAmount;
       let currentErc20BalanceAmount;
-      let faucetResults;
 
       // Only test Tx creation for ETH and ERC20.
       const protocolNamesToTestTxWith = [
@@ -51,7 +54,7 @@ async function testComplexTransactionCreationWithFaucet(t) {
         'ethereum_ropsten', 'erc20_ropsten',
         'ethereum_kovan', 'erc20_kovan',
       ];
-      if (-1 === protocolNamesToTestTxWith.indexOf(wallet.protocol)) {
+      if (!protocolNamesToTestTxWith.includes(wallet.protocol)) {
         continue;
       }
 
@@ -64,7 +67,7 @@ async function testComplexTransactionCreationWithFaucet(t) {
         to: faucetConfig.erc20.contract,
         value: int2BN(0).toString(10),
         gas_limit: int2BN(faucetConfig.erc20.gasLimit).toString(10),
-        gas_price: int2BN(faucetConfig.gasPrice).toString(10),
+        gas_price: int2BN((await egs.getGasPrice(24)).min).toString(10),
         abi: minimalTransferABI,
         parameters: [faucetConfig.holder.address, int2BN(faucetConfig.erc20.amount).toString(10)],
       }
@@ -85,14 +88,12 @@ async function testComplexTransactionCreationWithFaucet(t) {
       t.ok(int2BN(currentEthBalanceAmount).eq(int2BN(0)), 'Initial ETH Balance is 0');
       t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(0)), 'Initial ERC20 Balance is 0');
 
-      t.comment(`Creating a transaction in the raw workflow.`);
+      t.comment(`Creating a transaction in the complex workflow.`);
 
       t.comment('Faucet *only* ERC20 tokens to the new wallet. This is done to trigger an auxilliary service, which will cover the gas cost.');
-      faucetResults = await faucet.run(wallet.address, int2BN(0), int2BN(faucetConfig.erc20.amount), t.comment);
-      for (const faucetResult of faucetResults) {
-        t.comment(testenv.getTxEtherscanUrl(wallet.protocol, faucetResult.transactionHash));
-      }
-      inspect('Faucet results:', faucetResults);
+      const faucetResult = await faucet.faucetErc20(wallet.address, int2BN(faucetConfig.erc20.amount), t.comment);
+      t.comment(testenv.getTxEtherscanUrl(wallet.protocol, faucetResult.transactionHash));
+      inspect('Faucet result:', faucetResult);
 
       if (BALANCE_UPDATE_WAIT_MINUTES) {
         currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
@@ -167,7 +168,7 @@ async function testComplexTransactionCreationWithFaucet(t) {
 if (('faucet' in testenv.config) && ('ethereum' in testenv.config.faucet)) {
   faucetConfig = testenv.config.faucet.ethereum;
   faucet = new testenv.EthereumAndErc20Faucet(faucetConfig);
-  test('Testing ERC20 via raw Tx transactions.createComplex() with faucet', testComplexTransactionCreationWithFaucet);
+  test('Testing ERC20 via complex Tx transactions.createComplex() with faucet', testComplexTransactionCreationWithFaucet);
 }
 else {
   test('Skip testing ERC20 transactions.createComplex() *without* faucet', async t => t.end());

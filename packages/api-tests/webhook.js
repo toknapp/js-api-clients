@@ -43,7 +43,7 @@ class WebhookListener {
 
   async _setupGooglePubsubSubscription() {
     const { getGooglePubsubSubscription } = require('./webhooks/google-cloud-functions/subscription.js');
-    this.googlePubsubSubscription = await getGooglePubsubSubscription(this.webhookConfig.projectId, this.webhookConfig.topicId);
+    this.googlePubsubSubscription = await getGooglePubsubSubscription(this.webhookConfig.projectId, this.webhookConfig.topicId, this.webhookConfig.credentials);
 
     this.googlePubsubSubscription.on('message', message => {
       message.ack();
