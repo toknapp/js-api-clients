@@ -6,10 +6,6 @@ const partials = require('../../partials.js');
 const erc20ABI = require('../../erc20-abi.json');
 const minimalTransferABI = erc20ABI.filter(abi => (abi.type == 'function') && (abi.name == 'transfer'))[0];
 
-const { EthGasStation } = require('../../ethgasstation.js');
-
-const egs = new EthGasStation();
-
 // Shortcuts to most-used facilities.
 const { test, inspect, int2BN } = testenv;
 
@@ -67,7 +63,7 @@ async function testComplexTransactionCreationWithFaucet(t) {
         to: faucetConfig.erc20.contract,
         value: int2BN(0).toString(10),
         gas_limit: int2BN(faucetConfig.erc20.gasLimit).toString(10),
-        gas_price: int2BN((await egs.getGasPrice(24)).min).toString(10),
+        gas_price: int2BN(await faucet.getGasPrice()).toString(10),
         abi: minimalTransferABI,
         parameters: [faucetConfig.holder.address, int2BN(faucetConfig.erc20.amount).toString(10)],
       }

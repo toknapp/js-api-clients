@@ -66,7 +66,7 @@ async function testComplexTransactionCreationWithFaucet(t) {
         to: faucetConfig.erc20.contract,
         value: int2BN(0).toString(10),
         gas_limit: int2BN(faucetConfig.erc20.gasLimit).toString(10),
-        gas_price: int2BN(faucetConfig.gasPrice).toString(10),
+        gas_price: int2BN(await faucet.getGasPrice()).toString(10),
         abi: minimalTransferABI,
         parameters: [faucetConfig.holder.address, int2BN(faucetConfig.erc20.amount).toString(10)],
       }

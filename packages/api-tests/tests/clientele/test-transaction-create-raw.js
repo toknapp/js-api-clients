@@ -72,7 +72,7 @@ async function testRawTransactionCreationWithFaucet(t) {
         value: '0x00',
         to: faucetConfig.erc20.contract,
         nonce: await web3.eth.getTransactionCount(wallet.address),
-        gasPrice: int2BN(faucetConfig.gasPrice),
+        gasPrice: int2BN(await faucet.getGasPrice()),
         gasLimit: int2BN(faucetConfig.erc20.gasLimit),
       };
 

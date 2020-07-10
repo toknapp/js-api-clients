@@ -31,6 +31,8 @@ async function testTransactionsWithFaucet(t) {
     return;
   }
 
+  const gasPrice = await faucet.getGasPrice();
+
   // Encapsulate in try / finally to be able to disconnect the websocket
   // connection of the faucet. Without disconnecting, the Nodejs process would
   // stay alive beyond test completion.
@@ -103,7 +105,7 @@ async function testTransactionsWithFaucet(t) {
           recipient=faucetConfig.holder.address,
           assetId=faucetConfig.erc20.assetId,
           quantity=int2BN(faucetConfig.erc20.amount).toString(10),
-          fee=int2BN(faucetConfig.gasPrice).mul(int2BN(21000).add(int2BN(faucetConfig.erc20.gasLimit))).toString(10)
+          fee=int2BN(gasPrice).mul(int2BN(21000).add(int2BN(faucetConfig.erc20.gasLimit))).toString(10)
         );
       }
       catch (error) {
@@ -144,7 +146,7 @@ async function testTransactionsWithFaucet(t) {
       );
 
       const totalEthFaucetAmount = (
-        int2BN(faucetConfig.gasPrice).mul(int2BN(totalGasLimit))
+        int2BN(gasPrice).mul(int2BN(totalGasLimit))
         .add(
           int2BN(faucetConfig.eth.amount)
         )
@@ -177,7 +179,7 @@ async function testTransactionsWithFaucet(t) {
       const preEthTxEthBalanceAmount = currentEthBalanceAmount;
       t.comment('Create ETH transaction with user gas funding.');
       const ethTxAmount = int2BN(faucetConfig.eth.amount);
-      const ethTxFee = int2BN(faucetConfig.gasPrice).mul(int2BN(21000));
+      const ethTxFee = int2BN(gasPrice).mul(int2BN(21000));
       try {
         tx = await clientele.transactions.create(
           wallet.id,
@@ -219,7 +221,7 @@ async function testTransactionsWithFaucet(t) {
           recipient=faucetConfig.holder.address,
           assetId=faucetConfig.erc20.assetId,
           quantity=int2BN(faucetConfig.erc20.amount).toString(10),
-          fee=int2BN(faucetConfig.gasPrice).mul(int2BN(21000).add(int2BN(faucetConfig.erc20.gasLimit))).toString(10)
+          fee=int2BN(gasPrice).mul(int2BN(21000).add(int2BN(faucetConfig.erc20.gasLimit))).toString(10)
         );
       }
       catch (error) {
@@ -298,7 +300,7 @@ async function testTransactionsWithoutFaucet(t) {
         recipient=faucetConfig.holder.address,
         assetId=faucetConfig.erc20.assetId,
         quantity=int2BN(faucetConfig.erc20.amount).toString(10),
-        fee=int2BN(faucetConfig.gasPrice).mul(int2BN(21000).add(int2BN(faucetConfig.erc20.gasLimit))).toString(10)
+        fee=int2BN(gasPrice).mul(int2BN(21000).add(int2BN(faucetConfig.erc20.gasLimit))).toString(10)
       );
     }
     catch (error) {
@@ -309,7 +311,7 @@ async function testTransactionsWithoutFaucet(t) {
 
     t.comment('Create ETH transaction.');
     const ethTxAmount = int2BN(faucetConfig.eth.amount);
-    const ethTxFee = int2BN(faucetConfig.gasPrice).mul(int2BN(21000));
+    const ethTxFee = int2BN(gasPrice).mul(int2BN(21000));
     try {
       tx = await clientele.transactions.create(
         wallet.id,
