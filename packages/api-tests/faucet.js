@@ -12,7 +12,20 @@ const {
 
 const { EthGasStation } = require('./ethgasstation.js');
 
-const egs = new EthGasStation();
+let egs;
+
+async function getGasPrice(web3, netName) {
+  if ('mainnet' == netName) {
+    if (! egs) {
+      egs = new EthGasStation();
+    }
+    return toBN((await egs.getGasPrice(24)).min);
+  }
+  else {
+    return toBN(await web3.eth.getGasPrice());
+    // return toBN(await web3.eth.getGasPrice()).mul(toBN(10));
+  }
+}
 
 function ensureHexPrefix(hexString) {
   return (hexString.substr(0, 2) === '0x') ? hexString : '0x' + hexString;
@@ -182,7 +195,7 @@ class EthereumAndErc20Faucet {
       this.config.holder.address,
       recipient,
       toBN(amount),
-      (await egs.getGasPrice(24)).min,
+      await getGasPrice(this.web3, this.config.netName),
       await this.getCurrentNonce()
     );
     return await this.signAndSend(txSendEther, logger);
@@ -195,7 +208,7 @@ class EthereumAndErc20Faucet {
       this.config.holder.address,
       recipient,
       toBN(amount),
-      (await egs.getGasPrice(24)).min,
+      await getGasPrice(this.web3, this.config.netName),
       this.config.erc20.gasLimit,
       await this.getCurrentNonce()
     );

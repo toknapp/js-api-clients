@@ -21,8 +21,6 @@ test('Testing just signing', async function testJustSigning(t) {
   t.comment('Generate signatures for those wallets which are Ethereum or Erc20 wallets.')
   for await (const wallet of clientele.wallets.list()) {
     let sig;
-    let currentEthBalanceAmount;
-    let currentErc20BalanceAmount;
 
     // Only test Tx creation for ETH and ERC20.
     const protocolNamesToTestWith = [
@@ -30,7 +28,7 @@ test('Testing just signing', async function testJustSigning(t) {
       'ethereum_ropsten', 'erc20_ropsten',
       'ethereum_kovan', 'erc20_kovan',
     ];
-    if (-1 === protocolNamesToTestWith.indexOf(wallet.protocol)) {
+    if (!protocolNamesToTestWith.includes(wallet.protocol)) {
       continue;
     }
 

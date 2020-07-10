@@ -14,8 +14,8 @@ test('Testing parallel users.create() with wallet creation', async function (t) 
   t.comment((new Date()).toISOString());
   const clientIp = '127.0.0.1';
   const userAgent = 'Upvest JS API client test script';
-  // const assetIds = Object.values(testenv.config.assetIds);
-  const assetIds = [testenv.config.assetIds.ExampleERC20];
+  const assetIds = Object.values(testenv.config.assetIds);
+  // const assetIds = [testenv.config.assetIds.ExampleERC20];
 
   const humanDate = () => (new Date()).toISOString();
 

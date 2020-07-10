@@ -62,23 +62,28 @@ test('Testing wallets.create(), and offboarding', async function (t) {
     const jsonResult = jsonResultsById.get(wallet.id);
     t.equal(wallet.address, jsonResult.address, 'Wallet address in JSON result is OK');
     t.equal(wallet.protocol, jsonResult.protocol, 'Wallet protocol in JSON result is OK');
-    if (wallet.protocol == 'ethereum' || wallet.protocol == 'ethereum_ropsten') {
+    const simpleWalletProtocol = wallet.protocol.replace(/_ropsten$/, '').replace(/_testnet$/, '');
+    const fnStem = `${simpleWalletProtocol}_${wallet.address}`;
+    if (simpleWalletProtocol == 'ethereum') {
       const jsonKeystore = jsonResult.keystore_file;
-      const zipKeystore = JSON.parse(filesFromZip.get(`${wallet.protocol}_${wallet.address}.json`).toString('utf8'));
+      const zipKeystore = JSON.parse(filesFromZip.get(`${fnStem}.json`).toString('utf8'));
       t.deepEqual(jsonKeystore, zipKeystore, 'JSON and ZIP keystore are equal.');
       // TODO decrypt keystore file and verify that private key belongs to wallet address
     }
-    else {
+    else if (simpleWalletProtocol == 'bitcoin') {
       const jsonBip38 = jsonResult.bip38_encrypted_private_key;
       const jsonQrSvg = jsonResult.qr_code_svg;
       const jsonQrPng = Buffer.from(jsonResult.qr_code_png_base64, 'base64');
-      const zipBip38 = filesFromZip.get(`${wallet.protocol}_${wallet.address}/${wallet.protocol}_${wallet.address}.txt`).toString('utf8');
-      const zipQrSvg = filesFromZip.get(`${wallet.protocol}_${wallet.address}/${wallet.protocol}_${wallet.address}.svg`).toString('utf8');
-      const zipQrPng = filesFromZip.get(`${wallet.protocol}_${wallet.address}/${wallet.protocol}_${wallet.address}.png`);
+      const zipBip38 = filesFromZip.get(`${fnStem}/${fnStem}.txt`).toString('utf8');
+      const zipQrSvg = filesFromZip.get(`${fnStem}/${fnStem}.svg`).toString('utf8');
+      const zipQrPng = filesFromZip.get(`${fnStem}/${fnStem}.png`);
       t.deepEqual(jsonBip38, zipBip38, 'JSON and ZIP bip38_encrypted_private_key are equal.');
       t.deepEqual(jsonQrSvg, zipQrSvg, 'JSON and ZIP SVG QR code are equal.');
       t.deepEqual(jsonQrPng, zipQrPng, 'JSON and ZIP PNG QR code are equal.');
       // TODO decrypt BIP38 and verify that private key belongs to wallet address
+    }
+    else {
+      t.fail(`Unknown wallet protocol ${simpleWalletProtocol}`);
     }
   }
 
