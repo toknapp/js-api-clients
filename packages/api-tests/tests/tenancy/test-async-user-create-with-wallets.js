@@ -25,8 +25,8 @@ test('Testing parallel users.create() with wallet creation', async function (t) 
 
   const miniCreate = async () => {
     const requestId = uuidv4();
-    const username = testenv.cryptoRandomString(10);
-    const password = testenv.cryptoRandomString(10);
+    const username = testenv.cryptoRandomString({length: 10, type: 'distinguishable'});
+    const password = testenv.cryptoRandomString({length: 10, type: 'distinguishable'});
     const before = Date.now();
     let user;
     try {

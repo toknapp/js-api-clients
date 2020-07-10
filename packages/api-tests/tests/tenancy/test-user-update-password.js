@@ -21,7 +21,7 @@ test('Testing users.updatePassword()', async function (t) {
 
   webhookRecording = await testenv.getWebhookRecording();
 
-  const newPassword = testenv.cryptoRandomString(10);
+  const newPassword = testenv.cryptoRandomString({length: 10, type: 'distinguishable'});
 
   let isUpdated;
   try {

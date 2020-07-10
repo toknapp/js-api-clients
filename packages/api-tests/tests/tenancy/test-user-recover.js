@@ -33,7 +33,7 @@ test('Testing users.recover()', async function (t) {
   t.equal(rk.username.substring(rk.username.indexOf('|') + 1), username, '"username" field in the Recovery Kit matches with given value');
   t.ok((Date.now() - (rk.datetime.low * 1000)) < 20 * 60 * 1000, '"datetime" field in the Recovery Kit contains a recent timestamp.');
 
-  const newPassword = testenv.cryptoRandomString(10);
+  const newPassword = testenv.cryptoRandomString({length: 10, type: 'distinguishable'});
 
   t.comment('Recovering the user with a new password and a decrypted Recovery Kit.');
   let recoverResult;

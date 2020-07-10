@@ -4,7 +4,7 @@ const { PubSub } = require('@google-cloud/pubsub');
 
 
 async function getGooglePubsubSubscription(projectId, topicId, credentials) {
-  const subscriptionId = topicId + '-' + cryptoRandomString(16);
+  const subscriptionId = topicId + '-' + cryptoRandomString({length: 16, type: 'distinguishable'});
 
   const pubsub = new PubSub({ projectId, credentials });
   const [ topic ] = await pubsub.topic(topicId).get({ autoCreate: true });

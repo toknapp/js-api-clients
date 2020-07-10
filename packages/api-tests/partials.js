@@ -45,8 +45,8 @@ const tGetCachedOrCreateUser = async (t, tenancy) => {
 const tCreateUser = async (t, tenancy, clientIp, userAgent, assetIds, rawRecoverykit) => {
   t.comment('Create user.');
   const withAssets = Array.isArray(assetIds) && assetIds.length > 0;
-  const username = cryptoRandomString(10);
-  const password = cryptoRandomString(10);
+  const username = cryptoRandomString({length: 10, type: 'distinguishable'});
+  const password = cryptoRandomString({length: 10, type: 'distinguishable'});
 
   let webhookRecording;
   if (withAssets) {
@@ -419,13 +419,13 @@ const tCreateDynamicWebhookWithMatcher = async (t, api, eventFilters, specificWe
   t.comment('Create dynamic webhook.');
 
   const dynamicBaseUrl = testenv.config.webhook.dynamicBaseUrl.replace(/\/+$/, '');
-  const webhookReceiverId = `${testenv.config.webhook.webhookId}-${cryptoRandomString(32)}`;
+  const webhookReceiverId = `${testenv.config.webhook.webhookId}-${cryptoRandomString({length: 32, type: 'distinguishable'})}`;
   const url = `${dynamicBaseUrl}/${webhookReceiverId}`;
   const headers = {"X-UP-JS-Test": "Hello world!"};
   const version = '1.2';
   const status = 'ACTIVE';
   const name = webhookReceiverId;
-  const hmacSecretKey = cryptoRandomString(32);
+  const hmacSecretKey = cryptoRandomString({length: 32, type: 'distinguishable'});
 
   let webhook;
   try {
