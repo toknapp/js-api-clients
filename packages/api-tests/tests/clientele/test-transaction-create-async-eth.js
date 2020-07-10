@@ -3,10 +3,6 @@ const crypto = require('crypto');
 const testenv = require('../../testenv.js');
 const partials = require('../../partials.js');
 
-const { EthGasStation } = require('../../ethgasstation.js');
-
-const egs = new EthGasStation();
-
 // Shortcuts to most-used facilities.
 const { test, inspect, int2BN } = testenv;
 
@@ -65,7 +61,7 @@ async function testAsyncTransactionCreationWithFaucet(t) {
 
       t.comment(`Creating a transaction in the async workflow.`);
 
-      const fee = int2BN((await egs.getGasPrice(24)).min).mul(int2BN(21000));
+      const fee = int2BN(await faucet.getGasPrice()).mul(int2BN(21000));
 
       t.comment('Faucet some ETH to the new wallet.');
       let faucetResult;

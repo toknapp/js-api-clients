@@ -151,6 +151,10 @@ class EthereumAndErc20Faucet {
     return web3Pool.getWeb3(this.config.infuraProjectId, this.config.netName);
   }
 
+  async getGasPrice() {
+    return await getGasPrice(this.web3, this.config.netName);
+  }
+
   async syncCurrentNonceFromBlockChain() {
     const blockChainNonce = toBN(await this.web3.eth.getTransactionCount(this.config.holder.address));
     if (blockChainNonce.gt(this.currentNonce)) {
@@ -195,7 +199,7 @@ class EthereumAndErc20Faucet {
       this.config.holder.address,
       recipient,
       toBN(amount),
-      await getGasPrice(this.web3, this.config.netName),
+      await this.getGasPrice(),
       await this.getCurrentNonce()
     );
     return await this.signAndSend(txSendEther, logger);
@@ -208,7 +212,7 @@ class EthereumAndErc20Faucet {
       this.config.holder.address,
       recipient,
       toBN(amount),
-      await getGasPrice(this.web3, this.config.netName),
+      await this.getGasPrice(),
       this.config.erc20.gasLimit,
       await this.getCurrentNonce()
     );
