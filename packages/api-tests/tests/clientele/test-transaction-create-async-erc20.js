@@ -127,6 +127,7 @@ async function testAsyncTransactionCreationWithFaucet(t) {
 
         t.notEqual(webhookPayload.data.hash.length, 0, `Received webhook with transaction hash ${webhookPayload.data.hash}.`);
         t.comment(testenv.getTxEtherscanUrl(wallet.protocol, webhookPayload.data.hash));
+        t.equal(webhookPayload.data.id, txResult.id, `Received webhook with transaction id equal to id of creation result.`);
         t.notEqual(webhookPayload.data.status, "QUEUED", `Received webhook with transaction status not "QUEUED" anymore.`);
 
         return true;
@@ -148,11 +149,13 @@ async function testAsyncTransactionCreationWithFaucet(t) {
       t.comment(`Inspecting retrieved TX:`);
       inspect(tx);
 
+      const expectedRemainingEthBalance = fee.sub(int2BN(tx.fee_info.fee));
+
       if (BALANCE_UPDATE_WAIT_MINUTES) {
         currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
         t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(0)), `ERC20 Balance now back to zero.`);
-        // currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
-        // t.ok(int2BN(currentEthBalanceAmount).eq(int2BN(0)), `ETH Balance now back to zero.`);
+        currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
+        t.ok(int2BN(currentEthBalanceAmount).eq(expectedRemainingEthBalance), `Remaining ETH Balance now equals funded gas fee minus actually spent gas fee.`);
       }
     }
 

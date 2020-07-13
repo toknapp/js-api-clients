@@ -1,3 +1,5 @@
+// DEPRECATED
+
 const testenv = require('../../testenv.js');
 const partials = require('../../partials.js');
 
@@ -23,6 +25,8 @@ const getAddressEtherscanUrl = (wallet) => {
   const etherscanSubDomainPrefix = protocolToEtherscanSubDomainPrefix.get(wallet.protocol) || '';
   return `https://${etherscanSubDomainPrefix}etherscan.io/address/${wallet.address}`;
 }
+
+// DEPRECATED
 
 async function testTransactionsWithFaucet(t) {
   if (! faucet) {
@@ -335,7 +339,7 @@ async function testTransactionsWithoutFaucet(t) {
 if (('faucet' in testenv.config) && ('ethereum' in testenv.config.faucet)) {
   faucetConfig = testenv.config.faucet.ethereum;
   faucet = new testenv.EthereumAndErc20Faucet(faucetConfig);
-  test('Testing ETH/ERC20 transactions.create() with faucet', testTransactionsWithFaucet);
+  test.skip('Testing ETH/ERC20 transactions.create() with faucet', testTransactionsWithFaucet);
 }
 else {
   // Even without running an actual faucet, we are still using some faucet
@@ -344,5 +348,5 @@ else {
   // Overwrite assetIds in example faucet config with assetIds from non-faucet config.
   faucetConfig.eth.assetId = testenv.config.assetIds.Ether;
   faucetConfig.erc20.assetId = testenv.config.assetIds.ExampleERC20;
-  test('Testing ETH/ERC20 transactions.create() *without* faucet', testTransactionsWithoutFaucet);
+  test.skip('Testing ETH/ERC20 transactions.create() *without* faucet', testTransactionsWithoutFaucet);
 }

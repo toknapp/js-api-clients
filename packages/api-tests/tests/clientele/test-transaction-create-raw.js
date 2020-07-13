@@ -45,11 +45,8 @@ async function testRawTransactionCreationWithFaucet(t) {
 
     t.comment('Generate transactions for those wallets which are Ethereum or Erc20 wallets.')
     for await (const wallet of clientele.wallets.list()) {
-      let fee;
-      let tx;
       let currentEthBalanceAmount;
       let currentErc20BalanceAmount;
-      let faucetResults;
 
       // Only test Tx creation for ETH and ERC20.
       const protocolNamesToTestTxWith = [
@@ -81,7 +78,6 @@ async function testRawTransactionCreationWithFaucet(t) {
       const inputFormat = 'hex';
       const fund = true;
 
-
       let ethBalance = testenv.getBalanceForAssetId(wallet, faucetConfig.eth.assetId);
       if (ethBalance) {
         currentEthBalanceAmount = ethBalance.amount;
@@ -97,11 +93,15 @@ async function testRawTransactionCreationWithFaucet(t) {
       t.comment(`Creating a transaction in the raw workflow.`);
 
       t.comment('Faucet *only* ERC20 tokens to the new wallet. This is done to trigger an auxilliary service, which will cover the gas cost.');
-      faucetResults = await faucet.run(wallet.address, int2BN(0), int2BN(faucetConfig.erc20.amount), t.comment);
-      for (const faucetResult of faucetResults) {
-        t.comment(testenv.getTxEtherscanUrl(wallet.protocol, faucetResult.transactionHash));
+      let faucetResult;
+      try {
+        faucetResult = await faucet.faucetErc20(wallet.address, int2BN(faucetConfig.erc20.amount), t.comment);
       }
-      inspect('Faucet results:', faucetResults);
+      catch (err) {
+        return partials.tErrorFail(t, err, `Faucetting some ERC20 to the new wallet failed.`);
+      }
+      t.comment(testenv.getTxEtherscanUrl(wallet.protocol, faucetResult.transactionHash));
+      inspect('Faucet result:', faucetResult);
 
       if (BALANCE_UPDATE_WAIT_MINUTES) {
         currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
@@ -112,7 +112,7 @@ async function testRawTransactionCreationWithFaucet(t) {
       const webhookRecording = await testenv.getWebhookRecording();
 
       t.comment(`Create ERC20-only transaction, with external gas funding.`);
-      let result;
+      let txResult;
       try {
         txResult = await clientele.transactions.createRaw(
           wallet.id,
@@ -146,6 +146,8 @@ async function testRawTransactionCreationWithFaucet(t) {
         t.equal(signatureHeader, 'sha256=' + hmac, 'Webhook HMAC signature matches');
 
         t.notEqual(webhookPayload.data.hash.length, 0, `Received webhook with transaction hash ${webhookPayload.data.hash}.`);
+        t.comment(testenv.getTxEtherscanUrl(wallet.protocol, webhookPayload.data.hash));
+        t.equal(webhookPayload.data.id, txResult.id, `Received webhook with transaction id equal to id of creation result.`);
         t.notEqual(webhookPayload.data.status, "QUEUED", `Received webhook with transaction status not "QUEUED" anymore.`);
 
         return true;
@@ -162,6 +164,19 @@ async function testRawTransactionCreationWithFaucet(t) {
       }
 
       webhookRecording.stop();
+
+      const tx = await clientele.transactions.retrieve(wallet.id, txResult.id);
+      t.comment(`Inspecting retrieved TX:`);
+      inspect(tx);
+
+      const expectedRemainingEthBalance = fee.sub(int2BN(tx.fee_info.fee));
+
+      if (BALANCE_UPDATE_WAIT_MINUTES) {
+        currentErc20BalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.erc20.assetId, currentErc20BalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
+        t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(0)), `ERC20 Balance now back to zero.`);
+        currentEthBalanceAmount = await partials.tWaitForBalanceUpdate(t, clientele, wallet.id, faucetConfig.eth.assetId, currentEthBalanceAmount, BALANCE_UPDATE_WAIT_MINUTES);
+        t.ok(int2BN(currentEthBalanceAmount).eq(expectedRemainingEthBalance), `Remaining ETH Balance now equals funded gas fee minus actually spent gas fee.`);
+      }
     }
 
   }

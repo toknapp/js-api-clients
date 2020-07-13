@@ -92,7 +92,7 @@ async function testAsyncTransactionCreationWithFaucet(t) {
           faucetConfig.eth.assetId,
           int2BN(faucetConfig.eth.amount).toString(10),
           fee.toString(10),
-          true,
+          true
         );
       }
       catch (err) {
@@ -120,6 +120,7 @@ async function testAsyncTransactionCreationWithFaucet(t) {
 
         t.notEqual(webhookPayload.data.hash.length, 0, `Received webhook with transaction hash ${webhookPayload.data.hash}.`);
         t.comment(testenv.getTxEtherscanUrl(wallet.protocol, webhookPayload.data.hash));
+        t.equal(webhookPayload.data.id, txResult.id, `Received webhook with transaction id equal to id of creation result.`);
         t.notEqual(webhookPayload.data.status, "QUEUED", `Received webhook with transaction status not "QUEUED" anymore.`);
 
         return true;
