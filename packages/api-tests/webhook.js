@@ -158,9 +158,7 @@ class DummyWebhookRecording {
   addMatcher(matcher) {}
 
   areAllMatched(timeOut) {
-    return new Promise((resolveAllMatchedPromise, rejectAllMatchedPromise) => {
-      resolveAllMatchedPromise(true);
-    });
+    return Promise.resolve(true);
   }
 
   stop() {}
