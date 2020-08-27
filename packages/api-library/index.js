@@ -121,7 +121,7 @@ class TransactionsEndpoint {
       quantity: String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
       fee: String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
       async: Boolean(asynchronously),
-      inputs,
+      inputs: Array.isArray(inputs) ? inputs : undefined, // `undefined` excludes from JSON payload
       fund: fund === Boolean(fund) ? fund : undefined, // `undefined` excludes from JSON payload, which triggers the "legacy behaviour" of leaving the default up to the API
     };
     const response = await this.client.post(`kms/wallets/${walletId}/transactions/`, data);
