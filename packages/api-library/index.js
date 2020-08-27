@@ -112,14 +112,18 @@ class TransactionsEndpoint {
     fee,
     asynchronously,
     inputs,
-    fund
+    fund,
+    gasLimit,
+    gasPrice
   ) {
     const data = {
       password,
       recipient,
       asset_id: assetId,
       quantity: String(quantity), // String because quantity could be bigger than Number.MAX_SAFE_INTEGER
-      fee: String(fee), // String because fee could be bigger than Number.MAX_SAFE_INTEGER
+      fee: fee ? String(fee) : undefined, // String because fee could be bigger than Number.MAX_SAFE_INTEGER
+      gas_limit: gasLimit ? String(gasLimit) : undefined, // String because gasLimit could be bigger than Number.MAX_SAFE_INTEGER
+      gas_price: gasPrice ? String(gasPrice) : undefined, // String because gasPrice could be bigger than Number.MAX_SAFE_INTEGER
       async: Boolean(asynchronously),
       inputs: Array.isArray(inputs) ? inputs : undefined, // `undefined` excludes from JSON payload
       fund: fund === Boolean(fund) ? fund : undefined, // `undefined` excludes from JSON payload, which triggers the "legacy behaviour" of leaving the default up to the API
