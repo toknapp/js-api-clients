@@ -62,6 +62,12 @@ async function testRawTransactionCreationWithFaucet(t) {
       t.comment(testenv.getAddressEtherscanUrl(wallet.protocol, wallet.address));
       inspect(wallet);
 
+      const gasLimitTransaction = int2BN(21000);
+      const gasLimitByteCode = int2BN(faucetConfig.erc20.gasLimit);
+      const gasLimitTotal = gasLimitTransaction.add(gasLimitByteCode);
+      const gasPrice = int2BN(await faucet.getGasPrice());
+      const fee = gasPrice.mul(gasLimitTotal);
+
       const web3 = web3Pool.getWeb3(faucetConfig.infuraProjectId, faucetConfig.netName);
 
       const rawTxParams = {
@@ -69,13 +75,14 @@ async function testRawTransactionCreationWithFaucet(t) {
         value: '0x00',
         to: faucetConfig.erc20.contract,
         nonce: await web3.eth.getTransactionCount(wallet.address),
-        gasPrice: int2BN(await faucet.getGasPrice()),
-        gasLimit: int2BN(faucetConfig.erc20.gasLimit),
+        gasPrice,
+        gasLimit: gasLimitTotal,
       };
 
       const ethTx = new EthJsTransaction(rawTxParams, {chain: faucetConfig.netName});
       const rawTx = ethTx.serialize().toString('hex');
       const inputFormat = 'hex';
+
       const fund = true;
 
       let ethBalance = testenv.getBalanceForAssetId(wallet, faucetConfig.eth.assetId);

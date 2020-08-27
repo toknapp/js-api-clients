@@ -12,6 +12,8 @@ const {
 
 const { EthGasStation } = require('./ethgasstation.js');
 
+const GAS_LIMIT_TRANSACTION = 21000;
+
 let egs;
 
 async function getGasPrice(web3, netName) {
@@ -37,8 +39,7 @@ function un0x(hexString) {
 
 
 async function prepareTxSendEther(web3, sender, recipient, amount, gasPrice=3.5e9, nonce=null) {
-  const GAS_LIMIT_ETH_TRANSFER = 21000;
-  const gasLimit = toBN(GAS_LIMIT_ETH_TRANSFER);
+  const gasLimit = toBN(GAS_LIMIT_TRANSACTION);
   gasPrice = toBN(gasPrice);
   const gasCost = gasLimit.mul(gasPrice);
 
@@ -213,7 +214,7 @@ class EthereumAndErc20Faucet {
       recipient,
       toBN(amount),
       await this.getGasPrice(),
-      this.config.erc20.gasLimit,
+      GAS_LIMIT_TRANSACTION + this.config.erc20.gasLimit,
       await this.getCurrentNonce()
     );
     return await this.signAndSend(txTransferErc20, logger);

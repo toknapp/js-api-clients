@@ -58,9 +58,11 @@ async function testComplexTransactionCreationWithFaucet(t) {
       t.comment(testenv.getAddressEtherscanUrl(wallet.protocol, wallet.address));
       inspect(wallet);
 
+      const gasLimitTransaction = int2BN(21000);
+      const gasLimitByteCode = int2BN(faucetConfig.erc20.gasLimit);
+      const gasLimitTotal = gasLimitTransaction.add(gasLimitByteCode);
       const gasPrice = int2BN(await faucet.getGasPrice());
-      const gasLimit = int2BN(faucetConfig.erc20.gasLimit);
-      const fee = gasPrice.mul(int2BN(21000).add(gasLimit));
+      const fee = gasPrice.mul(gasLimitTotal);
 
       const txCreationData = {
         type: 'ethereum_function_call',
@@ -71,7 +73,6 @@ async function testComplexTransactionCreationWithFaucet(t) {
         abi: minimalTransferABI,
         parameters: [faucetConfig.holder.address, int2BN(faucetConfig.erc20.amount).toString(10)],
       }
-
       inspect(txCreationData);
 
       const fund = true;

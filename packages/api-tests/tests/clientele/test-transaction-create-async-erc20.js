@@ -54,6 +54,15 @@ async function testAsyncTransactionCreationWithFaucet(t) {
       t.comment('Inspecting listed wallet:');
       t.comment(testenv.getAddressEtherscanUrl(wallet.protocol, wallet.address));
       inspect(wallet);
+
+      const gasLimitTransaction = int2BN(21000);
+      const gasLimitByteCode = int2BN(faucetConfig.erc20.gasLimit);
+      const gasLimitTotal = gasLimitTransaction.add(gasLimitByteCode);
+      const gasPrice = int2BN(await faucet.getGasPrice());
+      const fee = gasPrice.mul(gasLimitTotal);
+
+      const fund = true;
+
       let ethBalance = testenv.getBalanceForAssetId(wallet, faucetConfig.eth.assetId);
       if (ethBalance) {
         currentEthBalanceAmount = ethBalance.amount;
@@ -67,8 +76,6 @@ async function testAsyncTransactionCreationWithFaucet(t) {
       t.ok(int2BN(currentErc20BalanceAmount).eq(int2BN(0)), 'Initial ERC20 Balance is 0');
 
       t.comment(`Creating a transaction in the async workflow.`);
-
-      const fee = int2BN(await faucet.getGasPrice()).mul(int2BN(21000).add(int2BN(faucetConfig.erc20.gasLimit)));
 
       t.comment('Faucet *only* ERC20 tokens to the new wallet. This is done to trigger an auxilliary service, which will cover the gas cost.');
       let faucetResult;
@@ -99,7 +106,9 @@ async function testAsyncTransactionCreationWithFaucet(t) {
           faucetConfig.erc20.assetId,
           int2BN(faucetConfig.erc20.amount).toString(10),
           fee.toString(10),
-          true
+          true,
+          null,
+          fund,
         );
       }
       catch (err) {
@@ -167,7 +176,6 @@ async function testAsyncTransactionCreationWithFaucet(t) {
     t.end();
   }
 }
-
 
 
 if (('faucet' in testenv.config) && ('ethereum' in testenv.config.faucet)) {
