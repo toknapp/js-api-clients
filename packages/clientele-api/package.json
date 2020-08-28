@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@upvest/clientele-api",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "description": "An axios-based, browser-runnable, client for the Upvest Clientele API",
   "scripts": {
     "lint": "eslint --ext .js ./"
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/toknapp/js-api-clients#readme",
   "dependencies": {
-    "@upvest/api-library": "^0.0.20",
+    "@upvest/api-library": "^0.0.21",
     "axios": "^0.19.2",
     "axios-oauth-client": "^1.3.0",
     "axios-token-interceptor": "^0.2.0"

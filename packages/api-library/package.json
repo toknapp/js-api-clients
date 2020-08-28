@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@upvest/api-library",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "Code shared between the Upvest Clientele API and Upvest Tenancy API",
   "scripts": {
     "lint": "eslint --ext .js ./"
