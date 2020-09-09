@@ -176,7 +176,7 @@ const tCreateWallets = async (t, api, assetIdsAndIndexes, username, password) =>
     t.comment(`About to create wallet for assetId ${assetId}, index ${index}. reqId( ${requestId} )`)
     let wallet;
     try {
-      wallet = await api.wallets.create(assetId, password, index, requestId);
+      wallet = await api.wallets.create(assetId, password, index, requestId, username);
     }
     catch (error) {
       return tErrorFail(t, error, `Creating the wallet for assetId ${assetId} and index ${index} failed. reqId( ${requestId} )`);
@@ -415,7 +415,7 @@ const tVerifyDynamicWebhookBaseUrl = async (t, api, baseUrl) => {
 }
 
 
-const tCreateDynamicWebhookWithMatcher = async (t, api, eventFilters, specificWebhookMatcher) => {
+const tCreateDynamicWebhookWithMatcher = async (t, api, eventFilters) => {
   t.comment('Create dynamic webhook.');
 
   const dynamicBaseUrl = testenv.config.webhook.dynamicBaseUrl.replace(/\/+$/, '');
@@ -438,36 +438,39 @@ const tCreateDynamicWebhookWithMatcher = async (t, api, eventFilters, specificWe
   t.comment('Inspecting created webhook.');
   inspect(webhook);
 
-  const genericWebhookMatcher = (body, simpleHeaders, rawHeaders, metaData) => {
-    const webhookPayload = JSON.parse(body);
-    if (metaData.webhookId != webhookReceiverId) {
-      // Only match the webhook created above.
-      return false;
+  const matcherWrapper = wrapped => {
+    const wrappingFunction = (body, simpleHeaders, rawHeaders, metaData) => {
+      const webhookPayload = JSON.parse(body);
+      if (metaData.webhookId != webhookReceiverId) {
+        // Only match the webhook created above.
+        return false;
+      }
+
+      const signatureHeader = simpleHeaders['X-Up-Signature'];
+      t.ok(signatureHeader, 'Found webhook HMAC signature header');
+      const hmac = crypto.createHmac('sha256', hmacSecretKey).update(body, 'utf8').digest('hex');
+      t.equal(signatureHeader, 'sha256=' + hmac, 'Webhook HMAC signature matches');
+
+      t.equal(webhookPayload.webhook_id, webhook.id, 'Received Webhook has expected API ID.');
+
+      // // Disabled because Upvest API is not sending out those headers yet.
+      // // TODO Re-enable when API is processing headers
+      // t.comment('Inspecting received headers.');
+      // inspect(simpleHeaders);
+      // for (const [headerName, headerValue] of Object.entries(headers)) {
+      //   t.equal(simpleHeaders[headerName], headerValue, 'Specified webhook headers are present');
+      // }
+
+      if (typeof wrapped == 'function') {
+        return wrapped(t, webhookPayload);
+      }
+
+      return true;
     }
-
-    const signatureHeader = simpleHeaders['X-Up-Signature'];
-    t.ok(signatureHeader, 'Found webhook HMAC signature header');
-    const hmac = crypto.createHmac('sha256', hmacSecretKey).update(body, 'utf8').digest('hex');
-    t.equal(signatureHeader, 'sha256=' + hmac, 'Webhook HMAC signature matches');
-
-    t.equal(webhookPayload.webhook_id, webhook.id, 'Received Webhook has same API ID as the webhook created just now.');
-
-    // // Disabled because Upvest API is not sending out those headers yet.
-    // // TODO Re-enable when API is processing headers
-    // t.comment('Inspecting received headers.');
-    // inspect(simpleHeaders);
-    // for (const [headerName, headerValue] of Object.entries(headers)) {
-    //   t.equal(simpleHeaders[headerName], headerValue, 'Specified webhook headers are present');
-    // }
-
-    if (typeof specificWebhookMatcher == 'function') {
-      return specificWebhookMatcher(t, webhookPayload);
-    }
-
-    return true;
+    return wrappingFunction;
   }
 
-  return { webhook, matcher: genericWebhookMatcher };
+  return { webhook, matcherWrapper };
 }
 
 

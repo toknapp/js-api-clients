@@ -13,7 +13,8 @@ test('Testing dynamic webhook for "echo.get"', async function (t) {
   const shout = 'Hello Echo!';
 
   const eventFilters = ['upvest.echo.get'];
-  const echoGetWebhookMatcher = (t, webhookPayload) => {
+  const { webhook, matcherWrapper } = await partials.tCreateDynamicWebhookWithMatcher(t, testenv.tenancy, eventFilters);
+  const echoGetWebhookMatcher = matcherWrapper((t, webhookPayload) => {
     t.comment('inspect webhookPayload');
     inspect(webhookPayload);
 
@@ -21,11 +22,10 @@ test('Testing dynamic webhook for "echo.get"', async function (t) {
     t.equal(webhookPayload.data.echo, shout, `Webhook payload has expected echo value.`);
 
     return true;
-  };
-  const { webhook, matcher } = await partials.tCreateDynamicWebhookWithMatcher(t, testenv.tenancy, eventFilters, echoGetWebhookMatcher);
+  });
 
   const webhookRecording = await testenv.getWebhookRecording();
-  webhookRecording.addMatcher(matcher);
+  webhookRecording.addMatcher(echoGetWebhookMatcher);
   
   let echoGet;
   try {

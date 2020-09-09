@@ -49,6 +49,22 @@ const getWebhookRecording = async () => {
   return webhooks ? webhooks.startRecording() : new DummyWebhookRecording();
 }
 
+let ethereumFaucet;
+
+const getEthereumFaucet = async () => {
+  if ('undefined' === typeof ethereumFaucet) {
+    if (config.faucet.ethereum) {
+      ethereumFaucet = new EthereumAndErc20Faucet(config.faucet.ethereum);
+      await ethereumFaucet.ready;
+      test.onFinish(() => ethereumFaucet.finalize());
+    }
+    else {
+      ethereumFaucet = null;
+    }
+  }
+  return ethereumFaucet;
+}
+
 const tenancy = new UpvestTenancyAPI(
   config.baseURL,
   config.first_apikey.key,
@@ -78,6 +94,7 @@ module.exports = {
   config, parallel,
   unpackRecoveryKit,
   getWebhooks, getWebhookRecording,
+  getEthereumFaucet,
   tenancy,
   getClienteleAPI,
 }

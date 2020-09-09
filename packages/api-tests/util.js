@@ -133,9 +133,11 @@ function hexdump(buf) {
   return lines.join('\n')
 }
 
-function removeHexPrefix(hexString) {
-  return (hexString.startsWith('0x') || hexString.startsWith('0X')) ? hexString.substring(2) : hexString;
-}
+const hexBigInt = x => `0x${BigInt(x).toString(16)}`;
+
+const ensureHexPrefix = hexString => (hexString.substr(0, 2) === '0x') ? hexString : '0x' + hexString;
+
+const removeHexPrefix = hexString => hexString.replace(/^0[xX]/, '');
 
 
 const protocolToEtherscanSubDomainPrefix = new Map([
@@ -198,7 +200,7 @@ module.exports = {
   setDifference, setEqual, inspect, inspectResponse, inspectError,
   readlineQuestionPromise,
   getBalanceForAssetId,
-  hexdump, removeHexPrefix,
+  hexdump, hexBigInt, ensureHexPrefix, removeHexPrefix,
   getTxEtherscanUrl, getAddressEtherscanUrl,
   getWebsocketMessageGenerator,
 };

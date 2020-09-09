@@ -106,7 +106,9 @@ class WebhookRecording {
     this.records.push(record);
     await this._matchRecord(record);
     if (this._areAllMatchersSatisfied()) {
-      this.allMatchedCallbacks.forEach(allMatchedCallback => allMatchedCallback());
+      // Copy allMatchedCallbacks because some callbacks might remove themselves from the set during iteration.
+      const allMatchedCallbacks = Array.from(this.allMatchedCallbacks.values());
+      allMatchedCallbacks.forEach(allMatchedCallback => allMatchedCallback());
     }
   }
 
@@ -140,7 +142,13 @@ class WebhookRecording {
       }
       else {
         const timeoutID = setTimeout(() => rejectAllMatchedPromise(false), timeOut);
-        this.allMatchedCallbacks.add(() => {clearTimeout(timeoutID); resolveAllMatchedPromise(true);});
+        let allMatchedCallback;
+        allMatchedCallback = () => {
+          clearTimeout(timeoutID);
+          this.allMatchedCallbacks.delete(allMatchedCallback);
+          resolveAllMatchedPromise(true);
+        }
+        this.allMatchedCallbacks.add(allMatchedCallback);
       }
     });
   }
