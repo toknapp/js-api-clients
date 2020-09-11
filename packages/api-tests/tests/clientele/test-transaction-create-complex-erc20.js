@@ -6,7 +6,7 @@ const { test } = testenv;
 
 async function main() {
   const feeCfgs = [
-    { fee: 'default' },
+    {},
     { gasLimit: 'default' },
     { gasPrice: 'default' },
     { gasPrice: 'default', gasLimit: 'default' },
