@@ -32,6 +32,7 @@
     "ethereum": {
       "netName": "ropsten",
       "infuraProjectId": "0123456789abcdef0123456789abcdef",
+      "ethGasStationApiKey": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789ab",
       "holder": {
         "address": "0x0123456789abcdef0123456789abcdef01234567",
         "key": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"

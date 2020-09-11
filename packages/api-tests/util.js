@@ -195,6 +195,7 @@ async function* getWebsocketMessageGenerator(ws, getDoneState) {
   ws.removeListener('message', messageHandler);
 }
 
+const isStringOfDigits = s => /^\d+$/.test(s);
 
 module.exports = {
   setDifference, setEqual, inspect, inspectResponse, inspectError,
@@ -203,4 +204,5 @@ module.exports = {
   hexdump, hexBigInt, ensureHexPrefix, removeHexPrefix,
   getTxEtherscanUrl, getAddressEtherscanUrl,
   getWebsocketMessageGenerator,
+  isStringOfDigits,
 };

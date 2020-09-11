@@ -9,11 +9,12 @@ const { test, inspect } = testenv;
 
 // ABSTRACT !!!
 class TxSender {
-  constructor(config, harness, {parallel = 1} = {}) {
+  constructor(config, harness, {parallel = 1, feeCfg = {gasLimit: null, gasPrice: null, fee: null}} = {}) {
     this.config = config;
     this.faucetCfg = this.config.faucet.ethereum;
     this.harness = harness;
     this.parallel = BigInt(parallel);
+    this.feeCfg = feeCfg;
     this.mainTxHashes = new Map();
     this.beSpecific();
     this.readyPromise = new Promise((resolvePromise, rejectPromise) => {
@@ -84,7 +85,7 @@ class TxSender {
     await this.refreshWallet();
     const walletBalancesById = this.getWalletBalancesById();
     for (const [assetId, expectedBalance] of Object.entries(this.expectedBalances)) {
-      this.harness.equal(expectedBalance, walletBalancesById[assetId], `Balance for Asset ${assetId} as expected: ${expectedBalance}`);
+      this.harness.equal(walletBalancesById[assetId], expectedBalance, `Balance for Asset ${assetId} as expected: ${expectedBalance}`);
     }
   }
 
@@ -96,10 +97,39 @@ class TxSender {
   }
 
   async compileTxData() {
-    this.gasLimitTotal = this.faucet.GAS_LIMIT_TRANSACTION + this.gasLimitByteCode;
+    this.gasLimit = this.faucet.GAS_LIMIT_TRANSACTION + this.gasLimitByteCode;
     this.gasPrice = BigInt(await this.faucet.getGasPrice());
-    this.fee = this.gasPrice * this.gasLimitTotal;
+    this.fee = this.gasPrice * this.gasLimit;
     this.fund = true;
+    await this.setEffectiveFeeCfg();
+  }
+
+  async setEffectiveFeeCfg() {
+    const applyFeeCfg = (cfg, defaultValue, acceptedValues=[]) =>{
+      acceptedValues = new Set(acceptedValues);
+      if (cfg === undefined || cfg === null) {
+        return undefined;
+      }
+      if (acceptedValues.has(cfg)) {
+        return cfg;
+      }
+      try {
+        return BigInt(cfg).toString(10);
+      }
+      catch (err) {
+        // Pass. Only returns if conversion is successful, otherwise fall back to default value.
+      }
+      return BigInt(defaultValue).toString(10);
+    };
+
+    this.effectiveFeeCfg  = {
+      gasLimit: applyFeeCfg(this.feeCfg.gasLimit, this.gasLimit),
+      gasPrice: applyFeeCfg(this.feeCfg.gasPrice, this.gasPrice, this.faucet.GAS_PRICE_LEVELS),
+      fee: applyFeeCfg(this.feeCfg.fee, this.fee),
+    };
+
+    this.harness.comment(`Inspecting effective fee configuration.`);
+    inspect(this.effectiveFeeCfg);
   }
 
   async runFaucet() {
@@ -161,10 +191,12 @@ class TxSender {
       this.faucetCfg.holder.address,
       this.mainTxAssetId,
       this.mainTxAmount.toString(10),
-      this.fee.toString(10),
+      this.effectiveFeeCfg.fee,
       true,
       null,
       this.fund,
+      this.effectiveFeeCfg.gasLimit,
+      this.effectiveFeeCfg.gasPrice,
     );
   }
 
@@ -292,7 +324,17 @@ class TxSender {
       //   exponent: 18
       // }
 
-      this.expectedBalances[this.faucetCfg.eth.assetId] += this.fee;
+      if (testenv.isStringOfDigits(this.effectiveFeeCfg.fee)) {
+        this.harness.equal(tx.fee, this.effectiveFeeCfg.fee, `TX fee as requested: ${this.effectiveFeeCfg.fee}`);
+      }
+      if (testenv.isStringOfDigits(this.effectiveFeeCfg.gasLimit)) {
+        this.harness.equal(tx.fee_info.gas_limit, this.effectiveFeeCfg.gasLimit, `TX gas limit as requested: ${this.effectiveFeeCfg.gasLimit}`);
+      }
+      if (testenv.isStringOfDigits(this.effectiveFeeCfg.gasPrice)) {
+        this.harness.equal(tx.fee_info.gas_price, this.effectiveFeeCfg.gasPrice, `TX gas price as requested: ${this.effectiveFeeCfg.gasPrice}`);
+      }
+
+      this.expectedBalances[this.faucetCfg.eth.assetId] += BigInt(tx.fee_info.gas_limit) * BigInt(tx.fee_info.gas_price);
       this.expectedBalances[this.faucetCfg.eth.assetId] -= BigInt(tx.fee_info.gas_used) * BigInt(tx.fee_info.gas_price);
     }
   }

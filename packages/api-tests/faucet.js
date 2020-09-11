@@ -14,6 +14,7 @@ const { EthGasStation } = require('./ethgasstation.js');
 class EthereumAndErc20Faucet {
   GAS_LIMIT_TRANSACTION = 21000n;
   ERC20_TRANSFER_ABI = erc20ABI.filter(abi => (abi.type == 'function') && (abi.name == 'transfer'))[0];
+  GAS_PRICE_LEVELS = new Set(['fastest', 'fast', 'medium', 'slow']);
 
   constructor(config) {
     this.config = config;
@@ -31,7 +32,7 @@ class EthereumAndErc20Faucet {
   async getGasPrice() {
     if ('mainnet' == this.config.netName) {
       if (! this.egs) {
-        this.egs = new EthGasStation();
+        this.egs = new EthGasStation({apiKey:this.config.ethGasStationApiKey});
       }
       return BigInt((await this.egs.getGasPrice(24)).min);
     }

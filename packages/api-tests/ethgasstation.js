@@ -11,7 +11,7 @@ class EthGasStation {
   constructor(cfg) {
     this.cfg = cfg || {};
 
-    const baseURL = 'https://ethgasstation.info/json/ethgasAPI.json';
+    const baseURL = `https://ethgasstation.info/api/ethgasAPI.json?api-key=${this.cfg.apiKey}`;
 
     this.client = axios.create({
       baseURL: baseURL,

@@ -28,7 +28,7 @@ class TxSenderRaw extends TxSender {
       to: this.faucetCfg.erc20.contract,
       nonce: int2BN(this.currentNonce),
       gasPrice: int2BN(this.gasPrice),
-      gasLimit: int2BN(this.gasLimitTotal),
+      gasLimit: int2BN(this.gasLimit),
     };
   }
 
