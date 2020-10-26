@@ -6,6 +6,9 @@ const partials = require('./partials.js');
 // Shortcuts to most-used facilities.
 const { test, inspect } = testenv;
 
+const mapFonstfaucetNetNameToWebhookNetName = new Map();
+mapFonstfaucetNetNameToWebhookNetName.set('ropsten', 'ropsten');
+mapFonstfaucetNetNameToWebhookNetName.set('mainnet', 'ethereum');
 
 // ABSTRACT !!!
 class TxSender {
@@ -44,7 +47,8 @@ class TxSender {
     this.harness.comment('Create dynamic webhook.');
     await partials.tVerifyDynamicWebhookBaseUrl(this.harness, testenv.tenancy, testenv.config.webhook.dynamicBaseUrl);
 
-    const eventFilters = [`${this.faucetCfg.netName}.transfer.observed`];
+    const webhookNetName = mapFonstfaucetNetNameToWebhookNetName.get(this.faucetCfg.netName);
+    const eventFilters = [`${webhookNetName}.transfer.observed`];
     ({ webhook:this.transferObservedWebhook, matcherWrapper:this.transferObservedWebhookMatcherWrapper } = await partials.tCreateDynamicWebhookWithMatcher(this.harness, testenv.tenancy, eventFilters));
   }
 
@@ -237,7 +241,7 @@ class TxSender {
 
     this.harness.notEqual(webhookPayload.data.hash.length, 0, `Received webhook with transaction hash ${webhookPayload.data.hash}.`);
     this.harness.comment(testenv.getTxEtherscanUrl(this.wallet.protocol, webhookPayload.data.hash));
-    this.harness.notEqual(webhookPayload.data.status, "QUEUED", `Received webhook with transaction status not "QUEUED" anymore.`);
+    this.harness.notEqual(webhookPayload.data.status, "QUEUED", `Received webhook with transaction status not "QUEUED" anymore: ${webhookPayload.data.status}`);
 
     this.mainTxHashes.set(txId, webhookPayload.data.hash);
 

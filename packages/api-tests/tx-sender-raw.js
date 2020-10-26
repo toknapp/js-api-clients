@@ -38,6 +38,8 @@ class TxSenderRaw extends TxSender {
 
     const ethTx = new EthJsTransaction(this.rawTxParams, {chain: this.faucetCfg.netName});
     const rawTx = ethTx.serialize().toString('hex');
+    const base64Tx = ethTx.serialize().toString('base64');
+    inspect(`base64Tx == ${base64Tx}`);
     inspect(this.rawTxParams, rawTx);
 
     return this.api.transactions.createRaw(
